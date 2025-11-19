@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Dashboard</title>
+    <link rel="stylesheet" href="/css/app.css" />
+  </head>
+  <body class="auth-body">
+    <div class="auth-wrapper">
+      <div class="auth-card">
+        <!-- HEADER -->
+        <header class="auth-header">
+          <h1>Welcome, <%= user && user.name ? user.name : "User" %></h1>
+          <p>Your inventory system dashboard</p>
+        </header>
+
+        <!-- USER INFO -->
+        <div class="auth-alert auth-alert-success">
+          <span>
+            Logged in as:
+            <strong
+              ><%= user && user.email ? user.email : "unknown email" %></strong
+            >
+          </span>
+        </div>
+
+        <!-- MAIN CONTENT -->
+        <main class="dashboard-section">
+          <p class="dashboard-text">
+            This is your protected dashboard page. Only authenticated users with
+            a valid JWT cookie can see this.
+          </p>
+
+          <ul class="dashboard-list">
+            <li>Manage products</li>
+            <li>Track inventory activity</li>
+            <li>See stats and analytics</li>
+          </ul>
+
+          <div class="dashboard-actions">
+            <a href="/products/add" class="auth-btn">Add Product</a>
+            <a href="/products" class="auth-btn">View Products</a>
+          </div>
+        </main>
+
+        <!-- LOGOUT -->
+        <form action="/logout" method="POST" class="logout-form">
+          <button type="submit" class="auth-btn">Logout</button>
+        </form>
+
+        <!-- FOOTER -->
+        <footer class="auth-footer">
+          <span>JWT auth with “Remember me” is active.</span>
+        </footer>
+      </div>
+    </div>
+  </body>
+</html>

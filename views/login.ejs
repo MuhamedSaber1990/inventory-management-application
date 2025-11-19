@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Login</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="stylesheet" href="/css/auth.css" />
+  </head>
+  <body class="auth-body">
+    <div class="auth-wrapper">
+      <div class="auth-card">
+        <div class="auth-header">
+          <h1>Welcome back</h1>
+          <p>Log in to continue to your account</p>
+        </div>
+
+        <% if (typeof error !== 'undefined' && error) { %>
+        <div class="auth-alert auth-alert-error"><%= error %></div>
+        <% } %> <% if (typeof success !== 'undefined' && success) { %>
+        <div class="auth-alert auth-alert-success"><%= success %></div>
+        <% } %>
+
+        <form action="/login" method="POST" class="auth-form">
+          <div class="auth-field">
+            <label for="email">Email</label>
+            <input
+              type="email"
+              id="email"
+              name="email"
+              required
+              placeholder="you@example.com"
+              value="<%= typeof formData !== 'undefined' && formData.email ? formData.email : '' %>"
+            />
+          </div>
+
+          <div class="auth-field">
+            <label for="password">Password</label>
+            <input
+              type="password"
+              id="password"
+              name="password"
+              required
+              placeholder="••••••••"
+            />
+          </div>
+
+          <div class="auth-extra">
+            <label class="auth-checkbox">
+              <input type="checkbox" name="remember" />
+              <span>Remember me</span>
+            </label>
+            <a href="#" class="auth-link-small">Forgot password?</a>
+          </div>
+
+          <button type="submit" class="auth-btn">Log in</button>
+        </form>
+
+        <div class="auth-footer">
+          <p>Dont have an account?</p>
+          <a href="/signup" class="auth-link">Create one</a>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>
