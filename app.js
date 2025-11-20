@@ -90,6 +90,14 @@ async function addProducts(name, price, qty, Description) {
   return insertProducts.rows[0];
 }
 
+async function updateProducts(id, name, price, quantity, description) {
+  const updateProduct = await db.query(
+    "UPDATE products SET name = $1, SET price = $2, SET quantity = $3, SET description = $4 WHERE id = $5 RETURNING *",
+    [name, price, quantity, description, id]
+  );
+  return updateProduct.rows[0];
+}
+
 app.get("/", (req, res) => {
   res.render("login.ejs");
 });
@@ -97,7 +105,6 @@ app.get("/", (req, res) => {
 app.post("/login", async (req, res) => {
   const { email, password, remember } = req.body;
   const rememberMe = remember === "on";
-  // console.log(typeof rememberMe);
 
   try {
     const user = await validateUser(email, password);

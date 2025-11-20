@@ -316,3 +316,30 @@ products-table th:nth-child(4),
 .dashboard-actions.right {
   text-align: right;
 }
+.table-actions {
+  white-space: nowrap;
+}
+
+.table-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(148, 163, 184, 0.6);
+  background: transparent;
+  color: var(--text-main);
+  font-size: 0.8rem;
+  font-weight: 500;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background-color var(--transition), border-color var(--transition),
+    color var(--transition), transform 80ms ease-out;
+}
+
+.table-btn:hover {
+  background: rgba(99, 102, 241, 0.15);
+  border-color: rgba(129, 140, 248, 0.9);
+  color: #e5e7ff;
+  transform: translateY(-1px);
+}
