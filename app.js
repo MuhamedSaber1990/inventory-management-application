@@ -71,8 +71,12 @@ async function newUser(name, email, password) {
 }
 
 async function getProducts() {
-  const products = await db.query("Select * from products");
+  const products = await db.query("Select * from products ORDER BY id ASC");
   return products.rows;
+}
+async function getProductsByID(id) {
+  const products = await db.query("Select * from products WHERE id = $1", [id]);
+  return products.rows[0];
 }
 
 function randomBarCode(length = 13) {
@@ -92,7 +96,13 @@ async function addProducts(name, price, qty, Description) {
 
 async function updateProducts(id, name, price, quantity, description) {
   const updateProduct = await db.query(
-    "UPDATE products SET name = $1, SET price = $2, SET quantity = $3, SET description = $4 WHERE id = $5 RETURNING *",
+    `UPDATE products
+     SET name = $1,
+         price = $2,
+         quantity = $3,
+         description = $4
+     WHERE id = $5
+     RETURNING *`,
     [name, price, quantity, description, id]
   );
   return updateProduct.rows[0];
@@ -176,7 +186,39 @@ app.post("/products/new", requireAuth, async (req, res) => {
       parseInt(quantity),
       description
     );
-    console.log(input);
+    // console.log(input);
+    res.redirect("/products");
+  } catch (error) {
+    console.error("Error in /products/new:", error);
+    res.status(500).send("Incorrect inputs");
+  }
+});
+
+app.get("/products/edit/:id", requireAuth, async (req, res) => {
+  const { id } = req.params;
+  try {
+    const product = await getProductsByID(id);
+    if (!product) {
+      return res.status(404).send("Product not found");
+    }
+    res.render("editproduct.ejs", { product });
+  } catch (err) {
+    console.error("Error loading product for edit:", err);
+    res.status(500).send("Error loading product");
+  }
+});
+
+app.post("/products/edit/:id", requireAuth, async (req, res) => {
+  const { name, price, quantity, description } = req.body;
+  const { id } = req.params;
+  try {
+    const updatedInput = await updateProducts(
+      parseInt(id),
+      name,
+      parseFloat(price),
+      parseInt(quantity),
+      description
+    );
     res.redirect("/products");
   } catch (error) {
     console.error("Error in /products/new:", error);

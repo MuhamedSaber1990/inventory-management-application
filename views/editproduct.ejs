@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Update Product</title>
+    <link rel="stylesheet" href="/css/app.css" />
+  </head>
+
+  <body class="auth-body">
+    <div class="auth-wrapper">
+      <div class="auth-card">
+        <!-- HEADER -->
+        <header class="auth-header">
+          <h1>Update Product</h1>
+          <p>Fill in the details to update the current item.</p>
+        </header>
+
+        <!-- FORM -->
+        <form
+          action="/products/edit/<%= product.id %>"
+          method="POST"
+          class="auth-form"
+        >
+          <div class="auth-field">
+            <label for="name">Product Name</label>
+            <input
+              type="text"
+              id="name"
+              name="name"
+              value="<%= product.name %>"
+              placeholder="Enter product name"
+              required
+            />
+          </div>
+
+          <div class="auth-field">
+            <label for="price">Price (€)</label>
+            <input
+              type="number"
+              id="price"
+              name="price"
+              step="0.01"
+              value="<%= product.price %>"
+              placeholder="Enter price"
+              required
+            />
+          </div>
+
+          <div class="auth-field">
+            <label for="quantity">Quantity</label>
+            <input
+              type="number"
+              id="quantity"
+              name="quantity"
+              value="<%= product.quantity %>"
+              placeholder="Enter quantity"
+              required
+            />
+          </div>
+
+          <div class="auth-field">
+            <label for="description">Description</label>
+            <textarea
+              id="description"
+              name="description"
+              placeholder="Enter product description"
+              rows="4"
+              required
+            >
+<%= product.description %></textarea
+            >
+          </div>
+
+          <button class="auth-btn" type="submit">Update Product</button>
+        </form>
+
+        <!-- BACK BUTTON -->
+        <div class="dashboard-actions">
+          <a href="/dashboard" class="auth-btn">Back to Dashboard</a>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>
