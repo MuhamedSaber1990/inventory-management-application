@@ -4,6 +4,7 @@ import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import cookieParser from "cookie-parser";
 import dotenv from "dotenv";
+import { body, validationResult } from "express-validator";
 
 dotenv.config();
 const app = express();
@@ -23,6 +24,43 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static("public"));
 app.use(cookieParser());
+
+const validateSignUpRules = [
+  body("name")
+    .trim()
+    .isLength({ min: 2 })
+    .withMessage("Name must be 2 characters atleast"),
+  body("email")
+    .trim()
+    .isEmail()
+    .withMessage("Invalid email address")
+    .normalizeEmail(),
+  body("password")
+    .isLength({ min: 8 })
+    .withMessage("Password length must be atleast 8")
+    .matches(/[A-Z]/)
+    .withMessage("Password must contain at least one uppercase letter")
+    .matches(/[!@#$%^&*(),.?":{}|<>]/)
+    .withMessage("Password must contain at least one special character"),
+  body("confirmPassword")
+    .custom((value, { req }) => value === req.body.password)
+    .withMessage("Passwords do not match"),
+];
+
+function validationSignUpInput(req, res, next) {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    const msg = errors
+      .array()
+      .map((err) => err.msg)
+      .join(". ");
+    return res.status(400).render("signup.ejs", {
+      errorMessage: msg,
+      old: { name: req.body.name, email: req.body.email },
+    });
+  }
+  next();
+}
 
 function requireAuth(req, res, next) {
   const token = req.cookies.auth_token;
@@ -86,10 +124,10 @@ function randomBarCode(length = 13) {
   }
   return code;
 }
-async function addProducts(name, price, qty, Description) {
+async function addProducts(name, price, qty, description) {
   const insertProducts = await db.query(
     "INSERT INTO products (name, price, quantity, description, bar_code) VALUES ($1,$2,$3,$4,$5) RETURNING *",
-    [name, price, qty, Description, randomBarCode()]
+    [name, price, qty, description, randomBarCode()]
   );
   return insertProducts.rows[0];
 }
@@ -108,6 +146,10 @@ async function updateProducts(id, name, price, quantity, description) {
   return updateProduct.rows[0];
 }
 
+async function deleteProduct(id) {
+  await db.query("DELETE FROM products WHERE id = $1", [id]);
+}
+
 app.get("/", (req, res) => {
   res.render("login.ejs");
 });
@@ -119,7 +161,7 @@ app.post("/login", async (req, res) => {
   try {
     const user = await validateUser(email, password);
     if (!user) {
-      return res.send("incorrect input");
+      return res.send("Invalid credentials");
     }
     const payload = { id: user.id, email: user.email, name: user.name };
     const expiresIn = rememberMe ? "1d" : "1h";
@@ -138,21 +180,31 @@ app.post("/login", async (req, res) => {
   }
 });
 
-app.get("/signup", async (req, res) => {
-  res.render("signup.ejs");
+app.get("/signup", (req, res) => {
+  res.render("signup.ejs", {
+    errorMessage: null,
+    old: { name: "", email: "" },
+  });
 });
 
-app.post("/signup", async (req, res) => {
-  const { name, email, password } = req.body;
-
-  try {
-    const result = await newUser(name, email, password);
-    console.log(result);
-    res.redirect("/");
-  } catch (error) {
-    res.status(500).send("Incorrect inputs");
+app.post(
+  "/signup",
+  validateSignUpRules,
+  validationSignUpInput,
+  async (req, res) => {
+    const { name, email, password } = req.body;
+    try {
+      await newUser(name, email, password);
+      res.redirect("/");
+    } catch (error) {
+      console.error("Error in /signup:", error);
+      return res.status(500).render("signup.ejs", {
+        errorMessage: "Could not create account. Email may already be in use.",
+        old: { name, email },
+      });
+    }
   }
-});
+);
 
 app.get("/dashboard", requireAuth, (req, res) => {
   res.render("dashboard.ejs", { user: req.user });
@@ -169,7 +221,7 @@ app.get("/products", requireAuth, async (req, res) => {
     console.log(products);
     res.render("products.ejs", { products: products });
   } catch (error) {
-    res.status(500).send("Incorrect inputs");
+    res.status(500).send("Invalid credentials");
   }
 });
 
@@ -190,7 +242,7 @@ app.post("/products/new", requireAuth, async (req, res) => {
     res.redirect("/products");
   } catch (error) {
     console.error("Error in /products/new:", error);
-    res.status(500).send("Incorrect inputs");
+    res.status(500).send("Invalid credentials");
   }
 });
 
@@ -221,8 +273,19 @@ app.post("/products/edit/:id", requireAuth, async (req, res) => {
     );
     res.redirect("/products");
   } catch (error) {
-    console.error("Error in /products/new:", error);
-    res.status(500).send("Incorrect inputs");
+    console.error("Error in /products/edit:", error);
+    res.status(500).send("Invalid credentials");
+  }
+});
+
+app.post("/products/delete/:id", requireAuth, async (req, res) => {
+  const { id } = req.params;
+  try {
+    await deleteProduct(id);
+    res.redirect("/products");
+  } catch (error) {
+    console.error("Error in /products/delete:", error);
+    res.status(500).send("Invalid credentials");
   }
 });
 

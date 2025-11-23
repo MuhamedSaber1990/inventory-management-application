@@ -71,10 +71,12 @@
 
           <button type="submit" class="auth-btn">Sign up</button>
         </form>
-
+        <% if (errorMessage) { %>
+        <div class="auth-alert auth-alert-error"><%= errorMessage %></div>
+        <% } %>
         <div class="auth-footer">
           <p>Already have an account?</p>
-          <a href="/login" class="auth-link">Log in</a>
+          <a href="/" class="auth-link">Log in</a>
         </div>
       </div>
     </div>

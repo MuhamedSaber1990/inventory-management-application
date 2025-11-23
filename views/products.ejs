@@ -35,9 +35,9 @@
               </thead>
 
               <tbody>
-                <% products.forEach(product => { %>
+                <% products.forEach((product ,index) => { %>
                 <tr>
-                  <td><%= product.id %></td>
+                  <td><%= index+1 %></td>
                   <td><%= product.name %></td>
                   <td><%= product.price %></td>
                   <td><%= product.quantity %></td>
@@ -48,14 +48,19 @@
                     >
                   </td>
                   <td class="table-actions">
-                    <a
-                      href="/products/delete/<%= product.id %>"
-                      class="table-btn"
-                      >Delete</a
+                    <form
+                      action="/products/delete/<%= product.id %>"
+                      method="POST"
+                      class="delete-form"
+                      data-name="<%= product.name %>"
                     >
+                      <button type="submit" class="table-btn table-btn-danger">
+                        Delete
+                      </button>
+                    </form>
                   </td>
+                  <% }) %>
                 </tr>
-                <% }) %>
               </tbody>
             </table>
           </div>
@@ -70,5 +75,6 @@
         </footer>
       </div>
     </div>
+    <script src="/js/app.js"></script>
   </body>
 </html>
