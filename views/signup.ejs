@@ -14,10 +14,8 @@
           <p>Join us and get started in seconds</p>
         </div>
 
-        <% if (typeof error !== 'undefined' && error) { %>
-        <div class="auth-alert auth-alert-error"><%= error %></div>
-        <% } %> <% if (typeof success !== 'undefined' && success) { %>
-        <div class="auth-alert auth-alert-success"><%= success %></div>
+        <% if (errorMessage) { %>
+        <div class="auth-alert auth-alert-error"><%= errorMessage %></div>
         <% } %>
 
         <form action="/signup" method="POST" class="auth-form">
@@ -29,7 +27,7 @@
               name="name"
               required
               placeholder="Your name"
-              value="<%= typeof formData !== 'undefined' && formData.name ? formData.name : '' %>"
+              value="<%= old && old.name ? old.name : '' %>"
             />
           </div>
 
@@ -41,7 +39,7 @@
               name="email"
               required
               placeholder="you@example.com"
-              value="<%= typeof formData !== 'undefined' && formData.email ? formData.email : '' %>"
+              value="<%= old && old.email ? old.email : '' %>"
             />
           </div>
 
@@ -52,7 +50,7 @@
               id="password"
               name="password"
               required
-              minlength="6"
+              minlength="8"
               placeholder="Create a password"
             />
           </div>
@@ -64,16 +62,14 @@
               id="confirmPassword"
               name="confirmPassword"
               required
-              minlength="6"
+              minlength="8"
               placeholder="Repeat your password"
             />
           </div>
 
           <button type="submit" class="auth-btn">Sign up</button>
         </form>
-        <% if (errorMessage) { %>
-        <div class="auth-alert auth-alert-error"><%= errorMessage %></div>
-        <% } %>
+
         <div class="auth-footer">
           <p>Already have an account?</p>
           <a href="/" class="auth-link">Log in</a>

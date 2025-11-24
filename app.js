@@ -5,6 +5,7 @@ import jwt from "jsonwebtoken";
 import cookieParser from "cookie-parser";
 import dotenv from "dotenv";
 import { body, validationResult } from "express-validator";
+import { name } from "ejs";
 
 dotenv.config();
 const app = express();
@@ -47,6 +48,30 @@ const validateSignUpRules = [
     .withMessage("Passwords do not match"),
 ];
 
+const productRules = [
+  body("name")
+    .trim()
+    .isLength({ min: 1, max: 250 })
+    .withMessage("Product name must be between 1 and 250 characters"),
+
+  body("price")
+    .trim()
+    .toFloat()
+    .isFloat({ min: 1, max: 1000000 })
+    .withMessage("Price must be a number between 1 and 1,000,000"),
+
+  body("quantity")
+    .trim()
+    .toInt()
+    .isInt({ min: 0, max: 10000 })
+    .withMessage("Quantity must be between 0 and 10,000"),
+
+  body("description")
+    .trim()
+    .isLength({ min: 1, max: 5000 })
+    .withMessage("Description must be 1-5000 characters long"),
+];
+
 function validationSignUpInput(req, res, next) {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
@@ -58,6 +83,46 @@ function validationSignUpInput(req, res, next) {
       errorMessage: msg,
       old: { name: req.body.name, email: req.body.email },
     });
+  }
+  next();
+}
+function validateAddProducts(req, res, next) {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    const msg = errors
+      .array()
+      .map((err) => err.msg)
+      .join(". ");
+    return res.status(400).render("addproduct.ejs", {
+      errorMessage: msg,
+      old: {
+        name: req.body.name,
+        price: req.body.price,
+        quantity: req.body.quantity,
+        description: req.body.description,
+      },
+    });
+  }
+  next();
+}
+
+function validateUpdateProducts(req, res, next) {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    const msg = errors
+      .array()
+      .map((err) => err.msg)
+      .join(". ");
+    const product = {
+      id: req.body.id,
+      name: req.body.name,
+      price: req.body.price,
+      quantity: req.body.quantity,
+      description: req.body.description,
+    };
+    return res
+      .status(400)
+      .render("editproduct.ejs", { errorMessage: msg, product });
   }
   next();
 }
@@ -226,25 +291,31 @@ app.get("/products", requireAuth, async (req, res) => {
 });
 
 app.get("/products/add", requireAuth, (req, res) => {
-  res.render("addproduct.ejs");
+  res.render("addproduct.ejs", { errorMessage: null, old: {} });
 });
 
-app.post("/products/new", requireAuth, async (req, res) => {
-  const { name, price, quantity, description } = req.body;
-  try {
-    const input = await addProducts(
-      name,
-      parseFloat(price),
-      parseInt(quantity),
-      description
-    );
-    // console.log(input);
-    res.redirect("/products");
-  } catch (error) {
-    console.error("Error in /products/new:", error);
-    res.status(500).send("Invalid credentials");
+app.post(
+  "/products/new",
+  requireAuth,
+  productRules,
+  validateAddProducts,
+  async (req, res) => {
+    const { name, price, quantity, description } = req.body;
+    try {
+      await addProducts(
+        name,
+        parseFloat(price),
+        parseInt(quantity, 10),
+        description
+      );
+      // console.log(input);
+      res.redirect("/products");
+    } catch (error) {
+      console.error("Error in /products/new:", error);
+      res.status(500).send("Server error while creating product");
+    }
   }
-});
+);
 
 app.get("/products/edit/:id", requireAuth, async (req, res) => {
   const { id } = req.params;
@@ -260,23 +331,29 @@ app.get("/products/edit/:id", requireAuth, async (req, res) => {
   }
 });
 
-app.post("/products/edit/:id", requireAuth, async (req, res) => {
-  const { name, price, quantity, description } = req.body;
-  const { id } = req.params;
-  try {
-    const updatedInput = await updateProducts(
-      parseInt(id),
-      name,
-      parseFloat(price),
-      parseInt(quantity),
-      description
-    );
-    res.redirect("/products");
-  } catch (error) {
-    console.error("Error in /products/edit:", error);
-    res.status(500).send("Invalid credentials");
+app.post(
+  "/products/edit/:id",
+  requireAuth,
+  productRules,
+  validateUpdateProducts,
+  async (req, res) => {
+    const { name, price, quantity, description } = req.body;
+    const { id } = req.params;
+    try {
+      await updateProducts(
+        parseInt(id, 10),
+        name,
+        parseFloat(price),
+        parseInt(quantity, 10),
+        description
+      );
+      res.redirect("/products");
+    } catch (error) {
+      console.error("Error in /products/edit:", error);
+      res.status(500).send("Invalid credentials");
+    }
   }
-});
+);
 
 app.post("/products/delete/:id", requireAuth, async (req, res) => {
   const { id } = req.params;
