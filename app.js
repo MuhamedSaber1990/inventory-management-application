@@ -6,7 +6,7 @@ import cookieParser from "cookie-parser";
 import dotenv from "dotenv";
 import { body, validationResult } from "express-validator";
 import rateLimit from "express-rate-limit";
-import { name } from "ejs";
+import { doubleCsrf } from "csrf-csrf";
 
 dotenv.config();
 const app = express();
@@ -26,6 +26,18 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static("public"));
 app.use(cookieParser());
+
+const { doubleCsrfProtection, generateCsrfToken } = doubleCsrf({
+  getSecret: () => process.env.CSRF_SECRET,
+  getSessionIdentifier: (req) => req.cookies.auth_token || req.ip,
+  cookieName: "x-csrf-token",
+  cookieOptions: {
+    httpOnly: false,
+    sameSite: "lax",
+    secure: false,
+  },
+  getCsrfTokenFromRequest: (req) => req.body._csrf,
+});
 
 const validateSignUpRules = [
   body("name")
@@ -80,10 +92,11 @@ const loginLimiter = rateLimit({
   legacyHeaders: false,
   handler: (req, res, next, options) => {
     const email = req.body?.email || "";
-
+    const csrfToken = generateCsrfToken(req, res);
     return res.status(429).render("login.ejs", {
       errorMessage: "Too many login attempts. Please try again later.",
       old: { email },
+      csrfToken,
     });
   },
 });
@@ -96,10 +109,11 @@ const signUpLimiter = rateLimit({
   handler: (req, res, next, options) => {
     const name = req.body?.name || "";
     const email = req.body?.email || "";
-
+    const csrfToken = generateCsrfToken(req, res);
     return res.status(429).render("signup.ejs", {
       errorMessage: "Too many signup attempts. Please try again later.",
       old: { name, email },
+      csrfToken,
     });
   },
 });
@@ -111,9 +125,11 @@ function validationSignUpInput(req, res, next) {
       .array()
       .map((err) => err.msg)
       .join(". ");
+    const csrfToken = generateCsrfToken(req, res);
     return res.status(400).render("signup.ejs", {
       errorMessage: msg,
       old: { name: req.body.name, email: req.body.email },
+      csrfToken,
     });
   }
   next();
@@ -125,6 +141,7 @@ function validateAddProducts(req, res, next) {
       .array()
       .map((err) => err.msg)
       .join(". ");
+    const csrfToken = generateCsrfToken(req, res);
     return res.status(400).render("addproduct.ejs", {
       errorMessage: msg,
       old: {
@@ -133,6 +150,7 @@ function validateAddProducts(req, res, next) {
         quantity: req.body.quantity,
         description: req.body.description,
       },
+      csrfToken,
     });
   }
   next();
@@ -146,15 +164,16 @@ function validateUpdateProducts(req, res, next) {
       .map((err) => err.msg)
       .join(". ");
     const product = {
-      id: req.body.id,
+      id: req.params.id,
       name: req.body.name,
       price: req.body.price,
       quantity: req.body.quantity,
       description: req.body.description,
     };
+    const csrfToken = generateCsrfToken(req, res);
     return res
       .status(400)
-      .render("editproduct.ejs", { errorMessage: msg, product });
+      .render("editproduct.ejs", { errorMessage: msg, product, csrfToken });
   }
   next();
 }
@@ -248,22 +267,26 @@ async function deleteProduct(id) {
 }
 
 app.get("/", (req, res) => {
+  const csrfToken = generateCsrfToken(req, res);
   res.render("login.ejs", {
     errorMessage: null,
     old: { email: "" },
+    csrfToken,
   });
 });
 
-app.post("/login", loginLimiter, async (req, res) => {
+app.post("/login", doubleCsrfProtection, loginLimiter, async (req, res) => {
   const { email, password, remember } = req.body;
   const rememberMe = remember === "on";
 
   try {
     const user = await validateUser(email, password);
     if (!user) {
+      const csrfToken = generateCsrfToken(req, res);
       return res.status(401).render("login.ejs", {
         errorMessage: "Invalid email or password",
         old: { email },
+        csrfToken,
       });
     }
     const payload = { id: user.id, email: user.email, name: user.name };
@@ -287,14 +310,17 @@ app.post("/login", loginLimiter, async (req, res) => {
 });
 
 app.get("/signup", (req, res) => {
+  const csrfToken = generateCsrfToken(req, res);
   res.render("signup.ejs", {
     errorMessage: null,
     old: { name: "", email: "" },
+    csrfToken,
   });
 });
 
 app.post(
   "/signup",
+  doubleCsrfProtection,
   signUpLimiter,
   validateSignUpRules,
   validationSignUpInput,
@@ -305,40 +331,46 @@ app.post(
       res.redirect("/");
     } catch (error) {
       console.error("Error in /signup:", error);
+      const csrfToken = generateCsrfToken(req, res);
       return res.status(500).render("signup.ejs", {
         errorMessage: "Could not create account. Email may already be in use.",
         old: { name, email },
+        csrfToken,
       });
     }
   }
 );
 
 app.get("/dashboard", requireAuth, (req, res) => {
-  res.render("dashboard.ejs", { user: req.user });
+  const csrfToken = generateCsrfToken(req, res);
+  res.render("dashboard.ejs", { user: req.user, csrfToken });
 });
 
-app.post("/logout", (req, res) => {
+app.post("/logout", doubleCsrfProtection, (req, res) => {
   res.clearCookie("auth_token");
   res.redirect("/");
 });
 
 app.get("/products", requireAuth, async (req, res) => {
+  const csrfToken = generateCsrfToken(req, res);
   try {
     const products = await getProducts();
     console.log(products);
-    res.render("products.ejs", { products: products });
+    res.render("products.ejs", { products: products, csrfToken });
   } catch (error) {
     res.status(500).send("Invalid credentials");
   }
 });
 
 app.get("/products/add", requireAuth, (req, res) => {
-  res.render("addproduct.ejs", { errorMessage: null, old: {} });
+  const csrfToken = generateCsrfToken(req, res);
+  res.render("addproduct.ejs", { errorMessage: null, old: {}, csrfToken });
 });
 
 app.post(
   "/products/new",
   requireAuth,
+  doubleCsrfProtection,
   productRules,
   validateAddProducts,
   async (req, res) => {
@@ -361,12 +393,13 @@ app.post(
 
 app.get("/products/edit/:id", requireAuth, async (req, res) => {
   const { id } = req.params;
+  const csrfToken = generateCsrfToken(req, res);
   try {
     const product = await getProductsByID(id);
     if (!product) {
       return res.status(404).send("Product not found");
     }
-    res.render("editproduct.ejs", { product });
+    res.render("editproduct.ejs", { product, csrfToken });
   } catch (err) {
     console.error("Error loading product for edit:", err);
     res.status(500).send("Error loading product");
@@ -376,6 +409,7 @@ app.get("/products/edit/:id", requireAuth, async (req, res) => {
 app.post(
   "/products/edit/:id",
   requireAuth,
+  doubleCsrfProtection,
   productRules,
   validateUpdateProducts,
   async (req, res) => {
@@ -397,16 +431,21 @@ app.post(
   }
 );
 
-app.post("/products/delete/:id", requireAuth, async (req, res) => {
-  const { id } = req.params;
-  try {
-    await deleteProduct(id);
-    res.redirect("/products");
-  } catch (error) {
-    console.error("Error in /products/delete:", error);
-    res.status(500).send("Invalid credentials");
+app.post(
+  "/products/delete/:id",
+  requireAuth,
+  doubleCsrfProtection,
+  async (req, res) => {
+    const { id } = req.params;
+    try {
+      await deleteProduct(id);
+      res.redirect("/products");
+    } catch (error) {
+      console.error("Error in /products/delete:", error);
+      res.status(500).send("Invalid credentials");
+    }
   }
-});
+);
 
 app.listen(port, () => {
   console.log(`Example app listening on port ${port}`);

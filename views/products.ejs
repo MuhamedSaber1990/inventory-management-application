@@ -54,6 +54,12 @@
                       class="delete-form"
                       data-name="<%= product.name %>"
                     >
+                      <input
+                        type="hidden"
+                        name="_csrf"
+                        value="<%= csrfToken %>"
+                      />
+
                       <button type="submit" class="table-btn table-btn-danger">
                         Delete
                       </button>

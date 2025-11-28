@@ -19,6 +19,8 @@
         <% } %>
 
         <form action="/signup" method="POST" class="auth-form">
+          <input type="hidden" name="_csrf" value="<%= csrfToken %>" />
+
           <div class="auth-field">
             <label for="name">Full name</label>
             <input
