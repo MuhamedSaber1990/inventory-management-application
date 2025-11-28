@@ -5,6 +5,7 @@ import jwt from "jsonwebtoken";
 import cookieParser from "cookie-parser";
 import dotenv from "dotenv";
 import { body, validationResult } from "express-validator";
+import rateLimit from "express-rate-limit";
 import { name } from "ejs";
 
 dotenv.config();
@@ -71,6 +72,37 @@ const productRules = [
     .isLength({ min: 1, max: 5000 })
     .withMessage("Description must be 1-5000 characters long"),
 ];
+
+const loginLimiter = rateLimit({
+  max: 5,
+  windowMs: 15 * 60 * 1000,
+  standardHeaders: true,
+  legacyHeaders: false,
+  handler: (req, res, next, options) => {
+    const email = req.body?.email || "";
+
+    return res.status(429).render("login.ejs", {
+      errorMessage: "Too many login attempts. Please try again later.",
+      old: { email },
+    });
+  },
+});
+
+const signUpLimiter = rateLimit({
+  max: 5,
+  windowMs: 60 * 60 * 1000,
+  standardHeaders: true,
+  legacyHeaders: false,
+  handler: (req, res, next, options) => {
+    const name = req.body?.name || "";
+    const email = req.body?.email || "";
+
+    return res.status(429).render("signup.ejs", {
+      errorMessage: "Too many signup attempts. Please try again later.",
+      old: { name, email },
+    });
+  },
+});
 
 function validationSignUpInput(req, res, next) {
   const errors = validationResult(req);
@@ -216,17 +248,23 @@ async function deleteProduct(id) {
 }
 
 app.get("/", (req, res) => {
-  res.render("login.ejs");
+  res.render("login.ejs", {
+    errorMessage: null,
+    old: { email: "" },
+  });
 });
 
-app.post("/login", async (req, res) => {
+app.post("/login", loginLimiter, async (req, res) => {
   const { email, password, remember } = req.body;
   const rememberMe = remember === "on";
 
   try {
     const user = await validateUser(email, password);
     if (!user) {
-      return res.send("Invalid credentials");
+      return res.status(401).render("login.ejs", {
+        errorMessage: "Invalid email or password",
+        old: { email },
+      });
     }
     const payload = { id: user.id, email: user.email, name: user.name };
     const expiresIn = rememberMe ? "1d" : "1h";
@@ -241,7 +279,10 @@ app.post("/login", async (req, res) => {
 
     res.redirect("/dashboard");
   } catch (error) {
-    res.status(500).send("Error loading items");
+    console.error("Login failed for email:", email, error);
+    return res.status(500).render("login.ejs", {
+      errorMessage: "Something went wrong. Please try again.",
+    });
   }
 });
 
@@ -254,6 +295,7 @@ app.get("/signup", (req, res) => {
 
 app.post(
   "/signup",
+  signUpLimiter,
   validateSignUpRules,
   validationSignUpInput,
   async (req, res) => {
