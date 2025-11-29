@@ -376,12 +376,7 @@ app.post(
   async (req, res) => {
     const { name, price, quantity, description } = req.body;
     try {
-      await addProducts(
-        name,
-        parseFloat(price),
-        parseInt(quantity, 10),
-        description
-      );
+      await addProducts(name, price, quantity, description);
       // console.log(input);
       res.redirect("/products");
     } catch (error) {
@@ -416,13 +411,7 @@ app.post(
     const { name, price, quantity, description } = req.body;
     const { id } = req.params;
     try {
-      await updateProducts(
-        parseInt(id, 10),
-        name,
-        parseFloat(price),
-        parseInt(quantity, 10),
-        description
-      );
+      await updateProducts(id, name, price, quantity, description);
       res.redirect("/products");
     } catch (error) {
       console.error("Error in /products/edit:", error);
