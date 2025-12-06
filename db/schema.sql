@@ -24,6 +24,7 @@ CREATE TABLE users (
 
     -- Security
     verification_token VARCHAR(255),
+    verification_token_expiry TIMESTAMP;
     reset_token VARCHAR(255),
     reset_token_expiry TIMESTAMP,
     last_login TIMESTAMP,
@@ -84,3 +85,8 @@ CREATE TABLE products (
 CREATE INDEX idx_products_name     ON products(name);
 CREATE INDEX idx_products_category ON products(category);
 CREATE INDEX idx_products_status   ON products(status);
+
+-- Index for faster token lookups
+CREATE INDEX IF NOT EXISTS idx_users_verification_token 
+ON users(verification_token) 
+WHERE verification_token IS NOT NULL;
