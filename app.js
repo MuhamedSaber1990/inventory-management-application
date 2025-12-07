@@ -1,18 +1,27 @@
 import express from "express";
 import cookieParser from "cookie-parser";
+import jwt from "jsonwebtoken";
+import dotenv from "dotenv";
 import { body, validationResult } from "express-validator";
-import rateLimit from "express-rate-limit";
-import db from "./src/config/database.js";
 import { generateCsrfToken, doubleCsrfProtection } from "./src/config/csrf.js";
 import { hashPw, validateUser, newUser } from "./src/models/user.model.js";
 import {
   getProducts,
   getProductsByID,
   updateProducts,
+  addProducts,
   deleteProduct,
 } from "./src/models/product.model.js";
 import { requireAuth } from "./src/middleware/auth.js";
+import {
+  validationSignUpInput,
+  validateAddProducts,
+  validateUpdateProducts,
+} from "./src/middleware/validation.js";
+import { loginLimiter, signUpLimiter } from "./src/middleware/rateLimiters.js";
 
+dotenv.config();
+const JWT_SECRET = process.env.JWT_SECRET;
 const app = express();
 const port = process.env.PORT;
 
@@ -67,99 +76,6 @@ const productRules = [
     .withMessage("Description must be 1-5000 characters long"),
 ];
 
-const loginLimiter = rateLimit({
-  max: 5,
-  windowMs: 15 * 60 * 1000,
-  standardHeaders: true,
-  legacyHeaders: false,
-  handler: (req, res, next, options) => {
-    const email = req.body?.email || "";
-    const csrfToken = generateCsrfToken(req, res);
-    return res.status(429).render("login.ejs", {
-      errorMessage: "Too many login attempts. Please try again later.",
-      old: { email },
-      csrfToken,
-    });
-  },
-});
-
-const signUpLimiter = rateLimit({
-  max: 5,
-  windowMs: 60 * 60 * 1000,
-  standardHeaders: true,
-  legacyHeaders: false,
-  handler: (req, res, next, options) => {
-    const name = req.body?.name || "";
-    const email = req.body?.email || "";
-    const csrfToken = generateCsrfToken(req, res);
-    return res.status(429).render("signup.ejs", {
-      errorMessage: "Too many signup attempts. Please try again later.",
-      old: { name, email },
-      csrfToken,
-    });
-  },
-});
-
-function validationSignUpInput(req, res, next) {
-  const errors = validationResult(req);
-  if (!errors.isEmpty()) {
-    const msg = errors
-      .array()
-      .map((err) => err.msg)
-      .join(". ");
-    const csrfToken = generateCsrfToken(req, res);
-    return res.status(400).render("signup.ejs", {
-      errorMessage: msg,
-      old: { name: req.body.name, email: req.body.email },
-      csrfToken,
-    });
-  }
-  next();
-}
-function validateAddProducts(req, res, next) {
-  const errors = validationResult(req);
-  if (!errors.isEmpty()) {
-    const msg = errors
-      .array()
-      .map((err) => err.msg)
-      .join(". ");
-    const csrfToken = generateCsrfToken(req, res);
-    return res.status(400).render("addproduct.ejs", {
-      errorMessage: msg,
-      old: {
-        name: req.body.name,
-        price: req.body.price,
-        quantity: req.body.quantity,
-        description: req.body.description,
-      },
-      csrfToken,
-    });
-  }
-  next();
-}
-
-function validateUpdateProducts(req, res, next) {
-  const errors = validationResult(req);
-  if (!errors.isEmpty()) {
-    const msg = errors
-      .array()
-      .map((err) => err.msg)
-      .join(". ");
-    const product = {
-      id: req.params.id,
-      name: req.body.name,
-      price: req.body.price,
-      quantity: req.body.quantity,
-      description: req.body.description,
-    };
-    const csrfToken = generateCsrfToken(req, res);
-    return res
-      .status(400)
-      .render("editproduct.ejs", { errorMessage: msg, product, csrfToken });
-  }
-  next();
-}
-
 app.get("/", (req, res) => {
   const csrfToken = generateCsrfToken(req, res);
   res.render("login.ejs", {
@@ -197,8 +113,11 @@ app.post("/login", doubleCsrfProtection, loginLimiter, async (req, res) => {
     res.redirect("/dashboard");
   } catch (error) {
     console.error("Login failed for email:", email, error);
+    const csrfToken = generateCsrfToken(req, res);
     return res.status(500).render("login.ejs", {
       errorMessage: "Something went wrong. Please try again.",
+      old: { email },
+      csrfToken,
     });
   }
 });
@@ -275,7 +194,13 @@ app.post(
       res.redirect("/products");
     } catch (error) {
       console.error("Error in /products/new:", error);
-      res.status(500).send("Server error while creating product");
+      const csrfToken = generateCsrfToken(req, res);
+      const { name, price, quantity, description } = req.body;
+      res.status(500).render("addproduct.ejs", {
+        errorMessage: "Server error while creating product",
+        old: { name, price, quantity, description },
+        csrfToken,
+      });
     }
   }
 );
