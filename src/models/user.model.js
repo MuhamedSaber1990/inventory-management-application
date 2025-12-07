@@ -30,3 +30,7 @@ export async function newUser(name, email, password) {
   );
   return insertUser.rows[0];
 }
+
+export async function lastLogin(userId) {
+  await db.query("UPDATE users SET last_login = NOW() WHERE id =$1", [userId]);
+}
