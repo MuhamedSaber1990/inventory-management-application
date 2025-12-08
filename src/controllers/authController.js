@@ -1,3 +1,4 @@
+// Authentication controller: handles login, signup, logout, and dashboard views
 import jwt from "jsonwebtoken";
 import { generateCsrfToken } from "../config/csrf.js";
 import { validateUser, newUser, lastLogin } from "../models/user.model.js";
@@ -7,6 +8,7 @@ dotenv.config();
 
 const JWT_SECRET = process.env.JWT_SECRET;
 
+// Render login page with CSRF token
 export function loginPage(req, res) {
   const csrfToken = generateCsrfToken(req, res);
   res.render("login.ejs", {
@@ -16,6 +18,7 @@ export function loginPage(req, res) {
   });
 }
 
+// Process login: validate credentials, generate JWT token with configurable expiry
 export async function handleLogin(req, res) {
   const { email, password, remember } = req.body;
   const rememberMe = remember === "on";
@@ -62,6 +65,7 @@ export async function handleLogin(req, res) {
   }
 }
 
+// Create new user account with hashed password
 export async function handleSignUp(req, res) {
   const { name, email, password } = req.body;
   try {
@@ -78,6 +82,7 @@ export async function handleSignUp(req, res) {
   }
 }
 
+// Render signup page with CSRF token
 export function showSignUp(req, res) {
   const csrfToken = generateCsrfToken(req, res);
   res.render("signup.ejs", {
@@ -87,11 +92,13 @@ export function showSignUp(req, res) {
   });
 }
 
+// Render dashboard with authenticated user info
 export function dashboard(req, res) {
   const csrfToken = generateCsrfToken(req, res);
   res.render("dashboard.ejs", { user: req.user, csrfToken });
 }
 
+// Clear authentication cookie and redirect to login
 export function logout(req, res) {
   res.clearCookie("auth_token");
   res.redirect("/");

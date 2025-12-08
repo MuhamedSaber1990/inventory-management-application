@@ -1,13 +1,5 @@
 import db from "../config/database.js";
-
-// Generate random 13-digit barcode
-function randomBarCode(length = 13) {
-  let code = "";
-  for (let index = 0; index < length; index++) {
-    code += Math.floor(Math.random() * 10);
-  }
-  return code;
-}
+import { randomBarCode, SKU } from "../utils/helpers.js";
 
 // Fetch all products ordered by ID
 export async function getProducts() {
@@ -24,8 +16,8 @@ export async function getProductsByID(id) {
 // Insert new product with generated barcode
 export async function addProducts(name, price, qty, description) {
   const insertProducts = await db.query(
-    "INSERT INTO products (name, price, quantity, description, bar_code) VALUES ($1,$2,$3,$4,$5) RETURNING *",
-    [name, price, qty, description, randomBarCode()]
+    "INSERT INTO products (name, price, quantity, description, bar_code,sku) VALUES ($1,$2,$3,$4,$5,$6) RETURNING *",
+    [name, price, qty, description, randomBarCode(), SKU(name)]
   );
   return insertProducts.rows[0];
 }

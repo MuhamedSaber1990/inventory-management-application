@@ -1,3 +1,4 @@
+// Main Express server configuration with CSRF protection and middleware setup
 import express from "express";
 import cookieParser from "cookie-parser";
 import dotenv from "dotenv";
@@ -28,15 +29,18 @@ import {
   deleteProductHandler,
 } from "./src/controllers/product.controller.js";
 
+// Initialize environment variables and Express application
 dotenv.config();
 const app = express();
 const port = process.env.PORT;
 
+// Configure middleware for parsing requests, static files, and cookies
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static("public"));
 app.use(cookieParser());
 
+// Authentication routes (login, signup with CSRF and rate limiting)
 app.get("/", loginPage);
 app.post("/login", doubleCsrfProtection, loginLimiter, handleLogin);
 app.get("/signup", showSignUp);
@@ -50,6 +54,7 @@ app.post(
 );
 app.get("/dashboard", requireAuth, dashboard);
 app.post("/logout", doubleCsrfProtection, logout);
+// Product management routes (view, add, edit, delete with authentication)
 app.get("/products", requireAuth, showProducts);
 app.get("/products/add", requireAuth, showAddProductForm);
 app.post(

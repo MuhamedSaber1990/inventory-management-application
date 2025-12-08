@@ -1,3 +1,4 @@
+// Product controller: handles product CRUD operations and form rendering
 import { generateCsrfToken } from "../config/csrf.js";
 import {
   getProducts,
@@ -7,6 +8,7 @@ import {
   deleteProduct,
 } from "../models/product.model.js";
 
+// Fetch and display all products
 export async function showProducts(req, res) {
   const csrfToken = generateCsrfToken(req, res);
   try {
@@ -18,11 +20,13 @@ export async function showProducts(req, res) {
   }
 }
 
+// Display add product form
 export async function showAddProductForm(req, res) {
   const csrfToken = generateCsrfToken(req, res);
   res.render("addproduct.ejs", { errorMessage: null, old: {}, csrfToken });
 }
 
+// Create new product and redirect to product list
 export async function addProductHandler(req, res) {
   const { name, price, quantity, description } = req.body;
   try {
@@ -39,6 +43,7 @@ export async function addProductHandler(req, res) {
     });
   }
 }
+// Load product for editing
 export async function updateProductsFrom(req, res) {
   const { id } = req.params;
   const csrfToken = generateCsrfToken(req, res);
@@ -54,6 +59,7 @@ export async function updateProductsFrom(req, res) {
   }
 }
 
+// Update product details and redirect to product list
 export async function updateProductHandeler(req, res) {
   const { name, price, quantity, description } = req.body;
   const { id } = req.params;
@@ -66,6 +72,7 @@ export async function updateProductHandeler(req, res) {
   }
 }
 
+// Delete product and redirect to product list
 export async function deleteProductHandler(req, res) {
   const { id } = req.params;
   try {

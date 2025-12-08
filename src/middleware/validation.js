@@ -1,6 +1,8 @@
+// Input validation middleware: sanitizes and validates signup and product data
 import { body, validationResult } from "express-validator";
 import { generateCsrfToken } from "../config/csrf.js";
 
+// Check signup validation errors and render with error messages
 export function validationSignUpInput(req, res, next) {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
@@ -17,6 +19,7 @@ export function validationSignUpInput(req, res, next) {
   }
   next();
 }
+// Check product creation validation errors
 export function validateAddProducts(req, res, next) {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
@@ -39,6 +42,7 @@ export function validateAddProducts(req, res, next) {
   next();
 }
 
+// Check product update validation errors
 export function validateUpdateProducts(req, res, next) {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
@@ -61,6 +65,7 @@ export function validateUpdateProducts(req, res, next) {
   next();
 }
 
+// Signup validation rules: name (2+ chars), email, password (8+ chars with uppercase and special char)
 export const validateSignUpRules = [
   body("name")
     .trim()
@@ -89,6 +94,7 @@ export const validateSignUpRules = [
     .withMessage("Passwords do not match"),
 ];
 
+// Product validation rules: name, price (1-1M), quantity (0-10K), description (1-5K chars)
 export const productRules = [
   body("name")
     .trim()
