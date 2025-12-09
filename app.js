@@ -5,6 +5,10 @@ import dotenv from "dotenv";
 import { doubleCsrfProtection } from "./src/config/csrf.js";
 import { requireAuth } from "./src/middleware/auth.js";
 import {
+  notFoundHandler,
+  globalErrorHandler,
+} from "./src/middleware/errorHandler.js";
+import {
   validationSignUpInput,
   validateAddProducts,
   validateUpdateProducts,
@@ -82,6 +86,10 @@ app.post(
   doubleCsrfProtection,
   deleteProductHandler
 );
+
+// Error handling middleware (must be after all routes)
+app.use(notFoundHandler);
+app.use(globalErrorHandler);
 
 app.listen(port, () => {
   console.log(`Example app listening on port ${port}`);
