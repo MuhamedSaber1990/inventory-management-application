@@ -1,44 +1,19 @@
-// Main Express server configuration with CSRF protection and middleware setup
+// Main Express server configuration
 import express from "express";
 import cookieParser from "cookie-parser";
 import dotenv from "dotenv";
 import helmet from "helmet";
-import { doubleCsrfProtection } from "./src/config/csrf.js";
-import { requireAuth } from "./src/middleware/auth.js";
+
+dotenv.config();
+
+import routes from "./src/routes/index.js";
+
 import {
   notFoundHandler,
   globalErrorHandler,
 } from "./src/middleware/errorHandler.js";
-import {
-  validateAddProducts,
-  validateUpdateProducts,
-  productRules,
-} from "./src/middleware/productValidators.js";
-import {
-  validateSignUpRules,
-  validationSignUpInput,
-  loginValidation,
-} from "./src/middleware/authValidators.js";
-import { loginLimiter, signUpLimiter } from "./src/middleware/rateLimiters.js";
-import {
-  loginPage,
-  handleLogin,
-  handleSignUp,
-  showSignUp,
-  dashboard,
-  logout,
-} from "./src/controllers/authController.js";
-import {
-  showProducts,
-  showAddProductForm,
-  addProductHandler,
-  updateProductsFrom,
-  updateProductHandeler,
-  deleteProductHandler,
-} from "./src/controllers/product.controller.js";
 
 // Initialize environment variables and Express application
-dotenv.config();
 const app = express();
 const port = process.env.PORT;
 
@@ -49,56 +24,8 @@ app.use(express.static("public"));
 app.use(cookieParser());
 app.use(helmet());
 
-// Authentication routes (login, signup with CSRF and rate limiting)
-app.get("/", loginPage);
-app.post(
-  "/login",
-  doubleCsrfProtection,
-  loginLimiter,
-  loginValidation,
-  handleLogin
-);
-app.get("/signup", showSignUp);
-app.post(
-  "/signup",
-  doubleCsrfProtection,
-  signUpLimiter,
-  validateSignUpRules,
-  validationSignUpInput,
-  handleSignUp
-);
-app.get("/dashboard", requireAuth, dashboard);
-app.post("/logout", doubleCsrfProtection, logout);
-// Product management routes (view, add, edit, delete with authentication)
-app.get("/products", requireAuth, showProducts);
-app.get("/products/add", requireAuth, showAddProductForm);
-app.post(
-  "/products/new",
-  requireAuth,
-  doubleCsrfProtection,
-  productRules,
-  validateAddProducts,
-  addProductHandler
-);
+app.use(routes);
 
-app.get("/products/edit/:id", requireAuth, updateProductsFrom);
-
-app.post(
-  "/products/edit/:id",
-  requireAuth,
-  doubleCsrfProtection,
-  productRules,
-  validateUpdateProducts,
-  updateProductHandeler
-);
-app.post(
-  "/products/delete/:id",
-  requireAuth,
-  doubleCsrfProtection,
-  deleteProductHandler
-);
-
-// Error handling middleware (must be after all routes)
 app.use(notFoundHandler);
 app.use(globalErrorHandler);
 
