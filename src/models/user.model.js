@@ -1,12 +1,5 @@
-import bcrypt from "bcrypt";
+import { comparePassword, hashPw } from "../utils/passwordUtils.js";
 import db from "../config/database.js";
-
-// Hash password with bcrypt
-export async function hashPw(password) {
-  const saltRound = 10;
-  const hashPw = await bcrypt.hash(password, saltRound);
-  return hashPw;
-}
 
 // Validate email and password against database
 export async function validateUser(email, password) {
@@ -17,7 +10,7 @@ export async function validateUser(email, password) {
   if (data.rows.length === 0) return false;
 
   const user = data.rows[0];
-  const match = await bcrypt.compare(password, user.password_hash);
+  const match = await comparePassword(password, user.password_hash);
   return match ? user : false;
 }
 

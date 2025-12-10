@@ -2,6 +2,7 @@
 import express from "express";
 import cookieParser from "cookie-parser";
 import dotenv from "dotenv";
+import helmet from "helmet";
 import { doubleCsrfProtection } from "./src/config/csrf.js";
 import { requireAuth } from "./src/middleware/auth.js";
 import {
@@ -9,12 +10,15 @@ import {
   globalErrorHandler,
 } from "./src/middleware/errorHandler.js";
 import {
-  validationSignUpInput,
   validateAddProducts,
   validateUpdateProducts,
-  validateSignUpRules,
   productRules,
-} from "./src/middleware/validation.js";
+} from "./src/middleware/productValidators.js";
+import {
+  validateSignUpRules,
+  validationSignUpInput,
+  loginValidation,
+} from "./src/middleware/authValidators.js";
 import { loginLimiter, signUpLimiter } from "./src/middleware/rateLimiters.js";
 import {
   loginPage,
@@ -43,10 +47,17 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static("public"));
 app.use(cookieParser());
+app.use(helmet());
 
 // Authentication routes (login, signup with CSRF and rate limiting)
 app.get("/", loginPage);
-app.post("/login", doubleCsrfProtection, loginLimiter, handleLogin);
+app.post(
+  "/login",
+  doubleCsrfProtection,
+  loginLimiter,
+  loginValidation,
+  handleLogin
+);
 app.get("/signup", showSignUp);
 app.post(
   "/signup",
