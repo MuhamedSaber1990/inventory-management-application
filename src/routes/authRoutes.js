@@ -2,7 +2,7 @@
 // Mounted at `/` in the main router
 import { Router } from "express";
 import { doubleCsrfProtection } from "../config/csrf.js";
-import { requireAuth } from "../middleware/auth.js";
+import { requireAuth, redirectIfAuth } from "../middleware/auth.js";
 
 import {
   validateSignUpRules,
@@ -14,7 +14,7 @@ import * as authController from "../controllers/authController.js";
 
 const router = Router();
 
-router.get("/", authController.loginPage);
+router.get("/", redirectIfAuth, authController.loginPage);
 router.post(
   "/login",
   doubleCsrfProtection,
@@ -22,7 +22,7 @@ router.post(
   loginValidation,
   authController.handleLogin
 );
-router.get("/signup", authController.showSignUp);
+router.get("/signup", redirectIfAuth, authController.showSignUp);
 router.post(
   "/signup",
   doubleCsrfProtection,

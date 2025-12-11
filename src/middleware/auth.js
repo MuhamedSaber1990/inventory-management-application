@@ -20,3 +20,19 @@ export function requireAuth(req, res, next) {
     return res.redirect("/");
   }
 }
+
+// Redirect if already authenticated
+export function redirectIfAuth(req, res, next) {
+  const token = req.cookies.auth_token;
+
+  if (token) {
+    try {
+      jwt.verify(token, JWT_SECRET);
+      return res.redirect("/dashboard");
+    } catch (error) {
+      res.clearCookie("auth_token");
+    }
+  }
+
+  next();
+}
