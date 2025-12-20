@@ -31,7 +31,16 @@ router.post(
   validationSignUpInput,
   authController.handleSignUp
 );
+router.get("/forgot-password", redirectIfAuth, authController.showForgotPW);
+router.post(
+  "/forgot-password",
+  doubleCsrfProtection,
+  authController.handleForgotPW
+);
 router.get("/dashboard", requireAuth, authController.dashboard);
 router.post("/logout", doubleCsrfProtection, authController.logout);
+
+router.get("/reset-password", authController.showResetPassword);
+router.post("/reset-password", authController.handleResetPassword);
 
 export default router;

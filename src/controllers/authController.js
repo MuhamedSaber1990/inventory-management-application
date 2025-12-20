@@ -1,7 +1,14 @@
 // Authentication controller: handles login, signup, logout, and dashboard views
 import jwt from "jsonwebtoken";
 import { generateCsrfToken } from "../config/csrf.js";
-import { validateUser, newUser, lastLogin } from "../models/user.model.js";
+import {
+  validateUser,
+  newUser,
+  lastLogin,
+  findUserByEmail,
+  resetPassword,
+} from "../models/user.model.js";
+import { sendResetPWEmail } from "../utils/mailer.js";
 import dotenv from "dotenv";
 
 dotenv.config();
@@ -102,4 +109,66 @@ export function dashboard(req, res) {
 export function logout(req, res) {
   res.clearCookie("auth_token");
   res.redirect("/");
+}
+
+// Render forgot password
+export function showForgotPW(req, res) {
+  const csrfToken = generateCsrfToken(req, res);
+  res.render("forgetpw.ejs", {
+    errorMessage: null,
+    old: { email: "" },
+    csrfToken,
+  });
+}
+
+export async function handleForgotPW(req, res) {
+  const csrfToken = generateCsrfToken(req, res);
+  const { email } = req.body;
+  try {
+    const user = await findUserByEmail(email);
+    if (!user) {
+      return res.render("forgetpw.ejs", {
+        errorMessage: "If that email exists, a reset link has been sent.",
+        old: { email },
+        csrfToken,
+      });
+    }
+    const resetLink = `http://${
+      req.headers.host
+    }/reset-password?email=${encodeURIComponent(user.email)}`;
+    await sendResetPWEmail(email, resetLink);
+    res.render("forgetpw.ejs", {
+      errorMessage: "Check your email for a reset link!",
+      old: { email },
+      csrfToken,
+    });
+  } catch (error) {
+    console.error("Forgot PW Error:", error);
+    res.status(500).render("forgetpw.ejs", {
+      errorMessage: "Error sending email. Please try again later.",
+      old: { email },
+      csrfToken,
+    });
+  }
+}
+
+export function showResetPassword(req, res) {
+  const { email } = req.query; // Or token
+  const csrfToken = generateCsrfToken(req, res);
+  res.render("reset-password.ejs", {
+    errorMessage: null,
+    old: { email },
+    csrfToken,
+  });
+}
+
+export async function handleResetPassword(req, res) {
+  const { email, password } = req.body;
+  try {
+    // You should verify a token here first!
+    await resetPassword(password, email); // Uses your existing model function
+    res.redirect("/?message=PasswordUpdated");
+  } catch (error) {
+    res.status(500).send("Error updating password");
+  }
 }

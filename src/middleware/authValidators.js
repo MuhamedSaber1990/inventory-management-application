@@ -48,6 +48,7 @@ export function validationSignUpInput(req, res, next) {
   next();
 }
 
+// Check Login validation errors and render with error messages
 export function loginValidation(req, res, next) {
   const errors = validationResult(req);
 

@@ -27,3 +27,19 @@ export async function newUser(name, email, password) {
 export async function lastLogin(userId) {
   await db.query("UPDATE users SET last_login = NOW() WHERE id =$1", [userId]);
 }
+
+export async function findUserByEmail(email) {
+  const insertEmail = await db.query("SELECT * FROM users WHERE email = $1", [
+    email,
+  ]);
+  return insertEmail.rows[0];
+}
+
+export async function resetPassword(password, email) {
+  const passwordHash = await hashPw(password);
+  const insertUser = await db.query(
+    "UPDATE users SET password_hash = $1 WHERE email =$2",
+    [passwordHash, email]
+  );
+  return insertUser.rows[0];
+}
