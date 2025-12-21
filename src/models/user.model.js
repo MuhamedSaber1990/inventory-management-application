@@ -1,4 +1,8 @@
-import { comparePassword, hashPw } from "../utils/passwordUtils.js";
+import {
+  comparePassword,
+  hashPw,
+  generateRandomToken,
+} from "../utils/passwordUtils.js";
 import db from "../config/database.js";
 
 // Validate email and password against database
@@ -34,12 +38,27 @@ export async function findUserByEmail(email) {
   ]);
   return insertEmail.rows[0];
 }
+export async function setResetToken(resetToken, expiry, email) {
+  const result = await db.query(
+    "UPDATE users SET reset_token = $1, reset_token_expiry = $2 WHERE email = $3 RETURNING *",
+    [resetToken, expiry, email]
+  );
+  return result.rows[0];
+}
 
 export async function resetPassword(password, email) {
   const passwordHash = await hashPw(password);
   const insertUser = await db.query(
-    "UPDATE users SET password_hash = $1 WHERE email =$2",
-    [passwordHash, email]
+    "UPDATE users SET password_hash = $1, reset_token = NULL, reset_token_expiry = NULL WHERE email =$2",
+    [passwordHash, email.toLowerCase()]
   );
   return insertUser.rows[0];
+}
+
+export async function findUserByResetToken(token) {
+  const result = await db.query(
+    "SELECT * FROM users WHERE reset_token = $1 AND reset_token_expiry > NOW()",
+    [token]
+  );
+  return result.rows[0];
 }

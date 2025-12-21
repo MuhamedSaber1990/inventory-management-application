@@ -36,3 +36,19 @@ export const signUpLimiter = rateLimit({
     });
   },
 });
+
+// Limit resetPW attempts to 3 per hour
+export const passwordResetLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000, // 1 hour window
+  max: 3,
+  standardHeaders: true,
+  legacyHeaders: false,
+  handler: (req, res, next, options) => {
+    const csrfToken = generateCsrfToken(req, res);
+    res.status(429).render("forgetpw.ejs", {
+      errorMessage: "Too many reset attempts. Please try again in an hour.",
+      old: { email: req.body.email || "" },
+      csrfToken,
+    });
+  },
+});

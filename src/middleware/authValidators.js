@@ -29,7 +29,21 @@ export const validateSignUpRules = [
     .custom((value, { req }) => value === req.body.password)
     .withMessage("Passwords do not match"),
 ];
+export const validateResetPassword = [
+  body("password")
+    .trim()
+    .isLength({ min: 8 })
+    .withMessage("Password length must be atleast 8")
+    .matches(/[A-Z]/)
+    .withMessage("Password must contain at least one uppercase letter")
+    .matches(/[!@#$%^&*(),.?\":{}|<>]/)
+    .withMessage("Password must contain at least one special character"),
 
+  body("confirmPassword")
+    .trim()
+    .custom((value, { req }) => value === req.body.password)
+    .withMessage("Passwords do not match"),
+];
 // Check signup validation errors and render with error messages
 export function validationSignUpInput(req, res, next) {
   const errors = validationResult(req);
@@ -61,6 +75,25 @@ export function loginValidation(req, res, next) {
     return res.status(400).render("login.ejs", {
       errorMessage: msg,
       old: { email: req.body.email },
+      csrfToken,
+    });
+  }
+  next();
+}
+
+export function resetPasswordValidation(req, res, next) {
+  const errors = validationResult(req);
+  if (!errors.isEmpty) {
+    const msg = errors
+      .array()
+      .map((err) => err.msg)
+      .join(". ");
+    const { token } = req.params;
+    const csrfToken = generateCsrfToken(req, res);
+    return res.status(400).render("reset-password.ejs", {
+      errorMessage: msg,
+      old: { email: req.body.email || "" },
+      token,
       csrfToken,
     });
   }

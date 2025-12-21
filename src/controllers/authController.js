@@ -7,8 +7,11 @@ import {
   lastLogin,
   findUserByEmail,
   resetPassword,
+  setResetToken,
 } from "../models/user.model.js";
 import { sendResetPWEmail } from "../utils/mailer.js";
+import { generateRandomToken } from "../utils/passwordUtils.js";
+import { findUserByResetToken } from "../models/user.model.js";
 import dotenv from "dotenv";
 
 dotenv.config();
@@ -133,12 +136,14 @@ export async function handleForgotPW(req, res) {
         csrfToken,
       });
     }
-    const resetLink = `http://${
-      req.headers.host
-    }/reset-password?email=${encodeURIComponent(user.email)}`;
+    const token = generateRandomToken();
+    const resetLink = `http://${req.headers.host}/reset-password/${token}`;
+    const expiry = new Date(Date.now() + 900000);
+    await setResetToken(token, expiry, email);
     await sendResetPWEmail(email, resetLink);
     res.render("forgetpw.ejs", {
-      errorMessage: "Check your email for a reset link!",
+      errorMessage:
+        "If that account exists, a reset link has been sent to your email.",
       old: { email },
       csrfToken,
     });
@@ -152,23 +157,64 @@ export async function handleForgotPW(req, res) {
   }
 }
 
-export function showResetPassword(req, res) {
-  const { email } = req.query; // Or token
+export async function showResetPassword(req, res) {
+  const { token } = req.params;
   const csrfToken = generateCsrfToken(req, res);
-  res.render("reset-password.ejs", {
-    errorMessage: null,
-    old: { email },
-    csrfToken,
-  });
+  try {
+    const user = await findUserByResetToken(token);
+    if (!user) {
+      return res.status(400).render("error.ejs", {
+        title: "Invalid Link",
+        errorMessage: "Token is invalid or expired.",
+        status: 400,
+      });
+    }
+    res.render("reset-password.ejs", {
+      errorMessage: null,
+      token,
+      old: { email: user.email },
+      csrfToken,
+    });
+  } catch (error) {
+    console.error("confirming tokenError:", error);
+    res.status(500).render("error.ejs", {
+      title: "Server Error",
+      message: "Error confirming token. Please try again later.",
+      status: 500,
+    });
+  }
 }
 
 export async function handleResetPassword(req, res) {
-  const { email, password } = req.body;
+  const { token } = req.params;
+  const { password, confirmPassword } = req.body;
+  const csrfToken = generateCsrfToken(req, res);
+  if (password !== confirmPassword) {
+    return res.render("reset-password.ejs", {
+      token,
+      errorMessage: "Passwords do not match",
+      csrfToken,
+    });
+  }
   try {
-    // You should verify a token here first!
-    await resetPassword(password, email); // Uses your existing model function
-    res.redirect("/?message=PasswordUpdated");
+    const user = await findUserByResetToken(token);
+    if (!user) {
+      return res.status(400).render("reset-password.ejs", {
+        token,
+        errorMessage: "Invalid token",
+        csrfToken,
+      });
+    }
+
+    await resetPassword(password, user.email);
+    res.redirect("/?success=Your password has been updated. Please log in.");
   } catch (error) {
-    res.status(500).send("Error updating password");
+    console.error("Reset Password Error:", error);
+    res.status(500).render("reset-password.ejs", {
+      token,
+      errorMessage: "An internal error occurred. Please try again.",
+      csrfToken,
+      old: { email: "" },
+    });
   }
 }

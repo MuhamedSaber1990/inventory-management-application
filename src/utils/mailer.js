@@ -21,7 +21,7 @@ export async function sendResetPWEmail(toEmail, resetLink) {
     html: `<h1>Password Reset</h1>
       <p>You requested a password reset. Click the link below to set a new password:</p>
       <a href="${resetLink}">Reset Password</a>
-      <p>This link will expire in 1 hour.</p>
+      <p>This link will expire in 15 mintues.</p>
       <p>If you didn't request this, please ignore this email.</p>
     `,
   };

@@ -8,8 +8,14 @@ import {
   validateSignUpRules,
   validationSignUpInput,
   loginValidation,
+  validateResetPassword,
+  resetPasswordValidation,
 } from "../middleware/authValidators.js";
-import { loginLimiter, signUpLimiter } from "../middleware/rateLimiters.js";
+import {
+  loginLimiter,
+  signUpLimiter,
+  passwordResetLimiter,
+} from "../middleware/rateLimiters.js";
 import * as authController from "../controllers/authController.js";
 
 const router = Router();
@@ -35,12 +41,19 @@ router.get("/forgot-password", redirectIfAuth, authController.showForgotPW);
 router.post(
   "/forgot-password",
   doubleCsrfProtection,
+  passwordResetLimiter,
   authController.handleForgotPW
 );
 router.get("/dashboard", requireAuth, authController.dashboard);
 router.post("/logout", doubleCsrfProtection, authController.logout);
 
-router.get("/reset-password", authController.showResetPassword);
-router.post("/reset-password", authController.handleResetPassword);
+router.get("/reset-password/:token", authController.showResetPassword);
+router.post(
+  "/reset-password/:token",
+  doubleCsrfProtection,
+  validateResetPassword,
+  resetPasswordValidation,
+  authController.handleResetPassword
+);
 
 export default router;
