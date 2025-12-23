@@ -9,7 +9,7 @@ import {
   resetPassword,
   setResetToken,
 } from "../models/user.model.js";
-import { sendResetPWEmail } from "../utils/mailer.js";
+import { sendResetPWEmail, sendEmailVerfication } from "../utils/mailer.js";
 import { generateRandomToken } from "../utils/passwordUtils.js";
 import { findUserByResetToken } from "../models/user.model.js";
 import dotenv from "dotenv";
@@ -75,15 +75,23 @@ export async function handleLogin(req, res) {
   }
 }
 
-// Create new user account with hashed password
+// Create new user account with hashed password & verficationToken
 export async function handleSignUp(req, res) {
+  const csrfToken = generateCsrfToken(req, res);
   const { name, email, password } = req.body;
+  const expiry = new Date(Date.now() + 86400000);
+  const token = generateRandomToken();
+  const resetLink = `http://${req.headers.host}/activate-account/${token}`;
   try {
-    await newUser(name, email, password);
-    res.redirect("/");
+    await newUser(name, email, password, token, expiry);
+    await sendEmailVerfication(email, resetLink);
+    res.render("signup-success.ejs", {
+      message: "Please check your email to activate your account.",
+      old: { email },
+      csrfToken,
+    });
   } catch (error) {
     console.error("Error in /signup:", error);
-    const csrfToken = generateCsrfToken(req, res);
     return res.status(500).render("signup.ejs", {
       errorMessage: "Could not create account. Email may already be in use.",
       old: { name, email },

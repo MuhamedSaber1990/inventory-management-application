@@ -1,8 +1,4 @@
-import {
-  comparePassword,
-  hashPw,
-  generateRandomToken,
-} from "../utils/passwordUtils.js";
+import { comparePassword, hashPw } from "../utils/passwordUtils.js";
 import db from "../config/database.js";
 
 // Validate email and password against database
@@ -19,11 +15,17 @@ export async function validateUser(email, password) {
 }
 
 // Create new user with hashed password
-export async function newUser(name, email, password) {
+export async function newUser(
+  name,
+  email,
+  password,
+  verificationToken,
+  tokenExpiry
+) {
   const passwordHash = await hashPw(password);
   const insertUser = await db.query(
-    "INSERT INTO users (name, email, password_hash) VALUES ($1,$2,$3) RETURNING *",
-    [name, email.toLowerCase(), passwordHash]
+    "INSERT INTO users (name, email, password_hash,verification_token,verification_token_expiry) VALUES ($1,$2,$3,$4,$5) RETURNING *",
+    [name, email.toLowerCase(), passwordHash, verificationToken, tokenExpiry]
   );
   return insertUser.rows[0];
 }

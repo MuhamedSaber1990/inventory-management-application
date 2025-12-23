@@ -66,7 +66,7 @@ export function validationSignUpInput(req, res, next) {
 export function loginValidation(req, res, next) {
   const errors = validationResult(req);
 
-  if (!errors.isEmpty) {
+  if (!errors.isEmpty()) {
     const msg = errors
       .array()
       .map((err) => err.msg)
@@ -83,7 +83,7 @@ export function loginValidation(req, res, next) {
 
 export function resetPasswordValidation(req, res, next) {
   const errors = validationResult(req);
-  if (!errors.isEmpty) {
+  if (!errors.isEmpty()) {
     const msg = errors
       .array()
       .map((err) => err.msg)

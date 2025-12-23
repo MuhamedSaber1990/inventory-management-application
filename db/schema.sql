@@ -24,7 +24,7 @@ CREATE TABLE users (
 
     -- Security
     verification_token VARCHAR(255),
-    verification_token_expiry TIMESTAMP;
+    verification_token_expiry TIMESTAMP,
     reset_token VARCHAR(255),
     reset_token_expiry TIMESTAMP,
     last_login TIMESTAMP,
