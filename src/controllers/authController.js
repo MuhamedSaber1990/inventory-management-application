@@ -8,6 +8,7 @@ import {
   findUserByEmail,
   resetPassword,
   setResetToken,
+  verifyUserToken,
 } from "../models/user.model.js";
 import { sendResetPWEmail, sendEmailVerfication } from "../utils/mailer.js";
 import { generateRandomToken } from "../utils/passwordUtils.js";
@@ -223,6 +224,35 @@ export async function handleResetPassword(req, res) {
       errorMessage: "An internal error occurred. Please try again.",
       csrfToken,
       old: { email: "" },
+    });
+  }
+}
+
+export async function handleAccountVerfifcation(req, res) {
+  const { token } = req.params;
+  const csrfToken = generateCsrfToken(req, res);
+  try {
+    const user = await verifyUserToken(token);
+    if (!user) {
+      return res.status(400).render("login.ejs", {
+        errorMessage:
+          "Invalid or expired activation link. Please sign up again.",
+        csrfToken,
+        old: null,
+      });
+    }
+
+    res.render("login.ejs", {
+      success: "Account activation success",
+      old: { email: user.email },
+      csrfToken,
+    });
+  } catch (error) {
+    console.error("Activation Error:", error);
+    return res.status(500).render("login.ejs", {
+      errorMessage: "Something went wrong during activation. Please try again.",
+      csrfToken,
+      old: null,
     });
   }
 }

@@ -56,4 +56,9 @@ router.post(
   authController.handleResetPassword
 );
 
+router.get(
+  "/activate-account/:token",
+  authController.handleAccountVerfifcation
+);
+
 export default router;

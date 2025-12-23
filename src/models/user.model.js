@@ -64,3 +64,11 @@ export async function findUserByResetToken(token) {
   );
   return result.rows[0];
 }
+
+export async function verifyUserToken(token) {
+  const result = await db.query(
+    "UPDATE users SET email_verified = true, verification_token = NULL, verification_token_expiry = NULL WHERE verification_token = $1 AND verification_token_expiry > NOW() RETURNING *",
+    [token]
+  );
+  return result.rows[0];
+}
