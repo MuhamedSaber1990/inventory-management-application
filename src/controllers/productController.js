@@ -2,20 +2,46 @@
 import { generateCsrfToken } from "../config/csrf.js";
 import {
   getProducts,
+  countProducts,
   getProductsByID,
   updateProducts,
   addProducts,
   deleteProduct,
-} from "../models/product.model.js";
+} from "../models/productModel.js";
 
 // Fetch and display all products
 export async function showProducts(req, res) {
   const csrfToken = generateCsrfToken(req, res);
+
+  const page = parseInt(req.query.page) || 1;
+  let limit = parseInt(req.query.limit) || 10;
+
+  //min 10 & max 80
+  if (limit < 1) limit = 10;
+  if (limit > 80) limit = 80;
+
+  //Calculate Offset
+  const offset = (page - 1) * limit;
+
   try {
-    const products = await getProducts();
+    const [products, totalItems] = await Promise.all([
+      getProducts(limit, offset),
+      countProducts(),
+    ]);
+
+    const totalPages = Math.ceil(totalItems / limit);
+
     console.log(products);
-    res.render("products.ejs", { products: products, csrfToken });
+    res.render("products.ejs", {
+      products,
+      csrfToken,
+      currentPage: page,
+      totalPages,
+      totalItems,
+      currentLimit: limit,
+    });
   } catch (error) {
+    console.error(error);
     res.status(500).send("Invalid credentials");
   }
 }

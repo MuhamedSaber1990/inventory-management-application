@@ -6,7 +6,7 @@ import {
   validateUpdateProducts,
   productRules,
 } from "../middleware/productValidators.js";
-import * as productController from "../controllers/product.controller.js";
+import * as productController from "../controllers/productController.js";
 import { requireAuth } from "../middleware/auth.js";
 
 const router = Router();

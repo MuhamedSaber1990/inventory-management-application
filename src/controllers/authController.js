@@ -9,10 +9,10 @@ import {
   resetPassword,
   setResetToken,
   verifyUserToken,
-} from "../models/user.model.js";
+} from "../models/userModel.js";
 import { sendResetPWEmail, sendEmailVerfication } from "../utils/mailer.js";
 import { generateRandomToken } from "../utils/passwordUtils.js";
-import { findUserByResetToken } from "../models/user.model.js";
+import { findUserByResetToken } from "../models/userModel.js";
 import dotenv from "dotenv";
 
 dotenv.config();

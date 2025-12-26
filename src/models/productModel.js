@@ -1,10 +1,19 @@
 import db from "../config/database.js";
 import { randomBarCode, SKU } from "../utils/helpers.js";
 
-// Fetch all products ordered by ID
-export async function getProducts() {
-  const products = await db.query("Select * from products ORDER BY id ASC");
+// Fetch all products ordered by ID with limit and offset
+export async function getProducts(limit, offeset) {
+  const products = await db.query(
+    "Select * from products ORDER BY id ASC LIMIT $1 OFFSET $2",
+    [limit, offeset]
+  );
   return products.rows;
+}
+
+//get count total products for pagination
+export async function countProducts() {
+  const result = await db.query("SELECT COUNT(*) FROM products");
+  return parseInt(result.rows[0].count, 10);
 }
 
 // Fetch single product by ID

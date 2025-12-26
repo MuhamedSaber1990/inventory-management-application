@@ -219,6 +219,7 @@ body {
 .products-table th:nth-child(1),
 .products-table td:nth-child(1) {
   width: 64px;
+  text-align: center;
 }
 
 .products-table th:nth-child(2),
@@ -248,14 +249,26 @@ body {
   min-width: 320px;
   white-space: normal;
 }
+.products-table td.id-cell {
+  display: flex;
+  justify-content: center; /* horizontal center */
+  align-items: center; /* vertical center */
+}
+
 /* Optional “pill” look for ID if used */
-.products-table td.id-pill {
+.products-table td.id-cell {
+  text-align: center;
+  vertical-align: middle;
+}
+
+.products-table .id-pill {
   display: inline-block;
-  padding: 4px 8px;
+  padding: 4px 10px;
   border-radius: 999px;
   background: rgba(99, 102, 241, 0.14);
   color: var(--text-main);
   font-weight: 600;
+  font-size: 0.85rem;
 }
 
 /* Description text style if you use class="description" */
@@ -424,4 +437,114 @@ body {
 
 .error-btn-secondary:hover {
   background: #e0e0e0;
+}
+
+/* ============ PAGINATION ============ */
+.pagination-wrapper {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: center;
+  align-items: center;
+  margin-top: 18px;
+}
+
+.page-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 44px;
+  height: 38px;
+  padding: 0 14px;
+  border-radius: 999px;
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: var(--text-main);
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(148, 163, 184, 0.22);
+  transition: transform 90ms ease-out, background var(--transition),
+    border-color var(--transition), filter var(--transition);
+}
+
+.page-link:hover {
+  transform: translateY(-1px);
+  background: rgba(99, 102, 241, 0.12);
+  border-color: rgba(99, 102, 241, 0.35);
+}
+
+.page-link.active {
+  background: rgba(99, 102, 241, 0.18);
+  border-color: rgba(99, 102, 241, 0.55);
+  box-shadow: 0 10px 24px rgba(99, 102, 241, 0.18);
+}
+
+.page-link.disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+/* ============ ITEMS PER PAGE (SELECT) ============ */
+.limit-controls {
+  margin-top: 14px;
+  display: flex;
+  justify-content: flex-end; /* align to right like your Add Product button */
+  align-items: center;
+  gap: 10px;
+}
+
+.limit-label {
+  color: var(--text-muted);
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.limit-select {
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+
+  padding: 10px 40px 10px 14px;
+  border-radius: 999px;
+  border: 1px solid rgba(148, 163, 184, 0.35);
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--text-main);
+  font-weight: 600;
+  font-size: 0.9rem;
+  cursor: pointer;
+  outline: none;
+  transition: border-color var(--transition), background var(--transition),
+    transform 90ms ease-out, box-shadow var(--transition);
+  position: relative;
+}
+
+/* fake arrow */
+.limit-select {
+  background-image: linear-gradient(
+      45deg,
+      transparent 50%,
+      var(--text-muted) 50%
+    ),
+    linear-gradient(135deg, var(--text-muted) 50%, transparent 50%);
+  background-position: calc(100% - 18px) 50%, calc(100% - 12px) 50%;
+  background-size: 6px 6px, 6px 6px;
+  background-repeat: no-repeat;
+}
+
+.limit-select:hover {
+  background-color: rgba(99, 102, 241, 0.1);
+  border-color: rgba(99, 102, 241, 0.45);
+  transform: translateY(-1px);
+}
+
+.limit-select:focus {
+  border-color: rgba(99, 102, 241, 0.65);
+  box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.18);
+}
+
+/* dropdown options (limited support, but helps) */
+.limit-select option {
+  background: #0b1022;
+  color: var(--text-main);
 }
