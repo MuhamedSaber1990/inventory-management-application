@@ -2,12 +2,10 @@ import db from "../config/database.js";
 import { randomBarCode, SKU } from "../utils/helpers.js";
 
 export async function getProducts(limit, offset, search = "") {
-  // 1. FIX: Use 'let', not 'const' so we can modify the string
   let query = "SELECT * FROM products";
   const params = [];
 
   if (search) {
-    // 2. FIX: Add space before WHERE
     query += " WHERE name ILIKE $1 OR sku ILIKE $1 OR description ILIKE $1";
     params.push(`%${search}%`);
   }
@@ -71,4 +69,23 @@ export async function updateProducts(id, name, price, quantity, description) {
 // Delete product by ID
 export async function deleteProduct(id) {
   await db.query("DELETE FROM products WHERE id = $1", [id]);
+}
+
+// Get high-level stats (Total Count, Total Value, Low Stock Count)
+export async function getDashboardStats() {
+  const query = `SELECT 
+    COUNT(*)::int as total_items,
+    COALESCE(SUM(price * quantity), 0)::numeric(10,2) as total_value,
+    COUNT(*) FILTER (WHERE quantity <= 10)::int as low_stock_count
+  FROM products
+   `;
+  const result = await db.query(query);
+  return result.rows[0];
+}
+
+export async function getLowStockProducts() {
+  const query =
+    "SELECT * FROM products WHERE quantity <= 10 ORDER BY quantity ASC LIMIT 5";
+  const result = await db.query(query);
+  return result.rows;
 }

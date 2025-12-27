@@ -549,8 +549,6 @@ body {
   color: var(--text-main);
 }
 
-/* ============ NEW: SEARCH BAR STYLES ============ */
-
 /* Wrapper to align Search (Left) and Limit (Right) */
 .controls-bar {
   display: flex;
@@ -615,4 +613,92 @@ body {
 /* Override limit-controls to remove margin so it fits in the bar */
 .limit-controls {
   margin-top: 0 !important;
+}
+
+/* ============ DASHBOARD STATS ============ */
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 20px;
+  margin-top: 24px;
+  margin-bottom: 30px;
+}
+
+.stat-card {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(148, 163, 184, 0.1);
+  padding: 20px;
+  border-radius: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  transition: transform 0.2s ease, background 0.2s ease;
+}
+
+.stat-card:hover {
+  background: rgba(255, 255, 255, 0.05);
+  transform: translateY(-2px);
+  border-color: rgba(99, 102, 241, 0.3);
+}
+
+.stat-label {
+  color: var(--text-muted);
+  font-size: 0.9rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.stat-value {
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--text-main);
+  line-height: 1;
+}
+
+/* Alert Colors for Low Stock Card */
+.stat-card.alert .stat-value {
+  color: #f87171; /* Red */
+}
+.stat-card.alert:hover {
+  border-color: rgba(248, 113, 113, 0.4);
+}
+
+/* Money Color */
+.stat-card.money .stat-value {
+  color: #4ade80; /* Green */
+}
+
+/* ============ LOW STOCK TABLE (Mini) ============ */
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+.section-header h2 {
+  font-size: 1.2rem;
+  margin: 0;
+}
+
+.mini-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.mini-table td {
+  padding: 12px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  font-size: 0.95rem;
+}
+
+.stock-badge {
+  background: rgba(248, 113, 113, 0.15);
+  color: #fca5a5;
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-weight: 600;
+  font-size: 0.85rem;
 }

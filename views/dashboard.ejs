@@ -10,49 +10,83 @@
       <div class="auth-card">
         <!-- HEADER -->
         <header class="auth-header">
-          <h1>Welcome, <%= user && user.name ? user.name : "User" %></h1>
-          <p>Your inventory system dashboard</p>
+          <h1>Welcome, <%= user.name %></h1>
+          <p>Inventory Overview</p>
         </header>
 
-        <!-- USER INFO -->
-        <div class="auth-alert auth-alert-success">
-          <span>
-            Logged in as:
-            <strong
-              ><%= user && user.email ? user.email : "unknown email" %></strong
-            >
-          </span>
+        <!-- 1. STATS GRID -->
+        <div class="stats-grid">
+          <!-- Card 1: Total Products -->
+          <div class="stat-card">
+            <span class="stat-label">Total Products</span>
+            <span class="stat-value"><%= stats.total_items %></span>
+          </div>
+
+          <!-- Card 2: Total Value (Formatted as Currency) -->
+          <div class="stat-card money">
+            <span class="stat-label">Total Value</span>
+            <span class="stat-value">
+              €<%= Number(stats.total_value).toLocaleString('en-EU', {
+              minimumFractionDigits: 2 }) %>
+            </span>
+          </div>
+
+          <!-- Card 3: Low Stock Alert -->
+          <div
+            class="stat-card <%= stats.low_stock_count > 0 ? 'alert' : '' %>"
+          >
+            <span class="stat-label">Low Stock Items</span>
+            <span class="stat-value"><%= stats.low_stock_count %></span>
+          </div>
         </div>
 
-        <!-- MAIN CONTENT -->
-        <main class="dashboard-section">
-          <p class="dashboard-text">
-            This is your protected dashboard page. Only authenticated users with
-            a valid JWT cookie can see this.
-          </p>
+        <!-- 2. MAIN ACTIONS -->
+        <div class="dashboard-actions">
+          <a href="/products" class="auth-btn">Manage All Products</a>
+          <form action="/logout" method="POST" style="display: inline">
+            <input type="hidden" name="_csrf" value="<%= csrfToken %>" />
+            <button
+              type="submit"
+              class="auth-btn"
+              style="
+                background: transparent;
+                border: 1px solid var(--border-subtle);
+              "
+            >
+              Logout
+            </button>
+          </form>
+        </div>
 
-          <ul class="dashboard-list">
-            <li>Manage products</li>
-            <li>Track inventory activity</li>
-            <li>See stats and analytics</li>
-          </ul>
-
-          <div class="dashboard-actions">
-            <a href="/products/add" class="auth-btn">Add Product</a>
-            <a href="/products" class="auth-btn">View Products</a>
+        <!-- 3. LOW STOCK ALERTS SECTION -->
+        <% if (lowStockProducts.length > 0) { %>
+        <div class="dashboard-section">
+          <div class="section-header">
+            <h2>⚠️ Low Stock Alerts</h2>
           </div>
-        </main>
 
-        <!-- LOGOUT -->
-        <form action="/logout" method="POST" class="logout-form">
-          <input type="hidden" name="_csrf" value="<%= csrfToken %>" />
-          <button type="submit" class="auth-btn">Logout</button>
-        </form>
-
-        <!-- FOOTER -->
-        <footer class="auth-footer">
-          <span>JWT auth with “Remember me” is active.</span>
-        </footer>
+          <table class="mini-table">
+            <tbody>
+              <% lowStockProducts.forEach(product => { %>
+              <tr>
+                <td><%= product.name %></td>
+                <td style="text-align: right">
+                  <span class="stock-badge"><%= product.quantity %> left</span>
+                </td>
+                <td style="text-align: right; width: 80px">
+                  <!-- Quick Link to Edit -->
+                  <a
+                    href="/products/edit/<%= product.id %>"
+                    class="auth-link-small"
+                    >Refill</a
+                  >
+                </td>
+              </tr>
+              <% }) %>
+            </tbody>
+          </table>
+        </div>
+        <% } %>
       </div>
     </div>
   </body>

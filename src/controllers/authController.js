@@ -9,17 +9,22 @@ import {
   resetPassword,
   setResetToken,
   verifyUserToken,
+  findUserByResetToken,
 } from "../models/userModel.js";
 import { sendResetPWEmail, sendEmailVerfication } from "../utils/mailer.js";
 import { generateRandomToken } from "../utils/passwordUtils.js";
-import { findUserByResetToken } from "../models/userModel.js";
+import {
+  getDashboardStats,
+  getLowStockProducts,
+} from "../models/productModel.js";
+
 import dotenv from "dotenv";
 
 dotenv.config();
 
 const JWT_SECRET = process.env.JWT_SECRET;
 
-// Render login page with CSRF token
+// Render login page
 export function loginPage(req, res) {
   const csrfToken = generateCsrfToken(req, res);
   res.render("login.ejs", {
@@ -29,13 +34,15 @@ export function loginPage(req, res) {
   });
 }
 
-// Process login: validate credentials, generate JWT token with configurable expiry
+// Process login
 export async function handleLogin(req, res) {
   const { email, password, remember } = req.body;
   const rememberMe = remember === "on";
 
   try {
     const user = await validateUser(email, password);
+
+    // Check credentials
     if (!user) {
       const csrfToken = generateCsrfToken(req, res);
       return res.status(401).render("login.ejs", {
@@ -44,6 +51,17 @@ export async function handleLogin(req, res) {
         csrfToken,
       });
     }
+
+    // Check if email is verified
+    if (!user.email_verified) {
+      const csrfToken = generateCsrfToken(req, res);
+      return res.status(403).render("login.ejs", {
+        errorMessage: "Please verify your email address before logging in.",
+        old: { email },
+        csrfToken,
+      });
+    }
+
     const previousLastLogin = user.last_login || null;
     await lastLogin(user.id);
 
@@ -59,11 +77,10 @@ export async function handleLogin(req, res) {
     res.cookie("auth_token", token, {
       httpOnly: true,
       sameSite: "lax",
-      secure: false,
+      secure: process.env.NODE_ENV === "production",
       maxAge: rememberMe ? 24 * 60 * 60 * 1000 : 60 * 60 * 1000,
     });
-    console.log("user from DB:", user);
-    console.log("user.last_login:", user.last_login);
+
     res.redirect("/dashboard");
   } catch (error) {
     console.error("Login failed for email:", email, error);
@@ -76,13 +93,14 @@ export async function handleLogin(req, res) {
   }
 }
 
-// Create new user account with hashed password & verficationToken
+// Handle Sign Up
 export async function handleSignUp(req, res) {
   const csrfToken = generateCsrfToken(req, res);
   const { name, email, password } = req.body;
   const expiry = new Date(Date.now() + 86400000);
   const token = generateRandomToken();
   const resetLink = `http://${req.headers.host}/activate-account/${token}`;
+
   try {
     await newUser(name, email, password, token, expiry);
     await sendEmailVerfication(email, resetLink);
@@ -93,15 +111,23 @@ export async function handleSignUp(req, res) {
     });
   } catch (error) {
     console.error("Error in /signup:", error);
+    // Handle Duplicate Email Error
+    if (error.code === "23505") {
+      return res.status(400).render("signup.ejs", {
+        errorMessage: "This email is already registered.",
+        old: { name, email },
+        csrfToken,
+      });
+    }
     return res.status(500).render("signup.ejs", {
-      errorMessage: "Could not create account. Email may already be in use.",
+      errorMessage: "Could not create account.",
       old: { name, email },
       csrfToken,
     });
   }
 }
 
-// Render signup page with CSRF token
+// Render signup page
 export function showSignUp(req, res) {
   const csrfToken = generateCsrfToken(req, res);
   res.render("signup.ejs", {
@@ -111,13 +137,34 @@ export function showSignUp(req, res) {
   });
 }
 
-// Render dashboard with authenticated user info
-export function dashboard(req, res) {
+// Render dashboard (With Analytics)
+export async function dashboard(req, res) {
   const csrfToken = generateCsrfToken(req, res);
-  res.render("dashboard.ejs", { user: req.user, csrfToken });
+
+  try {
+    const [stats, lowStockProducts] = await Promise.all([
+      getDashboardStats(),
+      getLowStockProducts(),
+    ]);
+
+    res.render("dashboard.ejs", {
+      user: req.user,
+      stats,
+      lowStockProducts,
+      csrfToken,
+    });
+  } catch (error) {
+    console.error("Dashboard Error:", error);
+    res.render("dashboard.ejs", {
+      user: req.user,
+      stats: { total_items: 0, total_value: 0, low_stock_count: 0 },
+      lowStockProducts: [],
+      csrfToken,
+    });
+  }
 }
 
-// Clear authentication cookie and redirect to login
+// Logout (The missing function!)
 export function logout(req, res) {
   res.clearCookie("auth_token");
   res.redirect("/");
@@ -133,6 +180,7 @@ export function showForgotPW(req, res) {
   });
 }
 
+// Handle Forgot PW
 export async function handleForgotPW(req, res) {
   const csrfToken = generateCsrfToken(req, res);
   const { email } = req.body;
@@ -166,6 +214,7 @@ export async function handleForgotPW(req, res) {
   }
 }
 
+// Show Reset Password Page
 export async function showResetPassword(req, res) {
   const { token } = req.params;
   const csrfToken = generateCsrfToken(req, res);
@@ -194,6 +243,7 @@ export async function showResetPassword(req, res) {
   }
 }
 
+// Handle Password Reset
 export async function handleResetPassword(req, res) {
   const { token } = req.params;
   const { password, confirmPassword } = req.body;
@@ -228,6 +278,7 @@ export async function handleResetPassword(req, res) {
   }
 }
 
+// Handle Email Verification
 export async function handleAccountVerfifcation(req, res) {
   const { token } = req.params;
   const csrfToken = generateCsrfToken(req, res);
