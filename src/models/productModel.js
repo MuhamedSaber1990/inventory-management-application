@@ -1,18 +1,39 @@
 import db from "../config/database.js";
 import { randomBarCode, SKU } from "../utils/helpers.js";
 
-// Fetch all products ordered by ID with limit and offset
-export async function getProducts(limit, offeset) {
-  const products = await db.query(
-    "Select * from products ORDER BY id ASC LIMIT $1 OFFSET $2",
-    [limit, offeset]
-  );
-  return products.rows;
+export async function getProducts(limit, offset, search = "") {
+  // 1. FIX: Use 'let', not 'const' so we can modify the string
+  let query = "SELECT * FROM products";
+  const params = [];
+
+  if (search) {
+    // 2. FIX: Add space before WHERE
+    query += " WHERE name ILIKE $1 OR sku ILIKE $1 OR description ILIKE $1";
+    params.push(`%${search}%`);
+  }
+
+  if (search) {
+    query += " ORDER BY id ASC LIMIT $2 OFFSET $3";
+    params.push(limit, offset);
+  } else {
+    query += " ORDER BY id ASC LIMIT $1 OFFSET $2";
+    params.push(limit, offset);
+  }
+
+  const result = await db.query(query, params);
+  return result.rows;
 }
 
 //get count total products for pagination
-export async function countProducts() {
-  const result = await db.query("SELECT COUNT(*) FROM products");
+export async function countProducts(search = "") {
+  let query = " SELECT COUNT(*) FROM products";
+  const params = [];
+
+  if (search) {
+    query += " WHERE name ILIKE $1 OR sku ILIKE $1 OR description ILIKE $1";
+    params.push(`%${search}%`);
+  }
+  const result = await db.query(query, params);
   return parseInt(result.rows[0].count, 10);
 }
 

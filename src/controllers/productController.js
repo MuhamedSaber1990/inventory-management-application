@@ -15,6 +15,7 @@ export async function showProducts(req, res) {
 
   const page = parseInt(req.query.page) || 1;
   let limit = parseInt(req.query.limit) || 10;
+  const search = req.query.search || "";
 
   //min 10 & max 80
   if (limit < 1) limit = 10;
@@ -25,8 +26,8 @@ export async function showProducts(req, res) {
 
   try {
     const [products, totalItems] = await Promise.all([
-      getProducts(limit, offset),
-      countProducts(),
+      getProducts(limit, offset, search),
+      countProducts(search),
     ]);
 
     const totalPages = Math.ceil(totalItems / limit);
@@ -39,6 +40,7 @@ export async function showProducts(req, res) {
       totalPages,
       totalItems,
       currentLimit: limit,
+      search,
     });
   } catch (error) {
     console.error(error);
