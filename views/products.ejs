@@ -5,7 +5,6 @@
     <title>Products</title>
     <link rel="stylesheet" href="/css/app.css" />
   </head>
-
   <body class="auth-body">
     <div class="auth-wrapper">
       <div class="auth-card">
@@ -13,40 +12,60 @@
           <h1>Products List</h1>
           <p>Your inventory items (<%= totalItems %> total)</p>
         </header>
-
+        
         <div class="dashboard-actions right">
           <a href="/products/add" class="auth-btn">Add Product</a>
         </div>
 
-        <!-- NEW: CONTROLS BAR (Search + Limit) -->
+        <!-- CONTROLS BAR (Search + Category + Limit) -->
         <div class="controls-bar">
           
-          <!-- 1. SEARCH FORM -->
-          <form action="/products" method="GET" class="search-form">
-            <!-- Keep current limit when searching -->
-            <input type="hidden" name="limit" value="<%= currentLimit %>">
-            <input 
-              type="text" 
-              name="search" 
-              placeholder="Search..." 
-              value="<%= typeof search !== 'undefined' ? search : '' %>" 
-              class="search-input"
-            >
-            <button type="submit" class="search-btn">
-              <!-- Magnifying Glass Icon -->
-              <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
-            </button>
-          </form>
+          <!-- LEFT SIDE: Search & Category -->
+          <div class="filter-group">
+            <!-- 1. SEARCH FORM -->
+            <form action="/products" method="GET" class="search-form">
+              <input type="hidden" name="limit" value="<%= currentLimit %>">
+              <input type="hidden" name="category" value="<%= selectedCategory %>">
+              <input 
+                type="text" 
+                name="search" 
+                placeholder="Search products..." 
+                value="<%= search || '' %>" 
+                class="search-input"
+              >
+              <button type="submit" class="search-btn">
+                <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                </svg>
+              </button>
+            </form>
 
-          <!-- 2. LIMIT SELECTOR (Updated) -->
+            <!-- 2. CATEGORY FILTER -->
+            <form action="/products" method="GET" id="categoryForm" class="category-filter">
+              <input type="hidden" name="page" value="1">
+              <input type="hidden" name="limit" value="<%= currentLimit %>">
+              <input type="hidden" name="search" value="<%= search || '' %>">
+              
+              <select name="category" id="category" class="filter-select">
+                <option value="">All Categories</option>
+                <% if (categories && categories.length > 0) { %>
+                  <% categories.forEach(cat => { %>
+                    <option value="<%= cat.category %>" <%= selectedCategory === cat.category ? 'selected' : '' %>>
+                      <%= cat.category %>
+                    </option>
+                  <% }) %>
+                <% } %>
+              </select>
+            </form>
+          </div>
+
+          <!-- RIGHT SIDE: Items per page -->
           <form action="/products" method="GET" id="limitForm" class="limit-controls">
             <label for="limit" class="limit-label">Items per page:</label>
             <input type="hidden" name="page" value="1">
+            <input type="hidden" name="search" value="<%= search || '' %>">
+            <input type="hidden" name="category" value="<%= selectedCategory %>">
             
-            <!-- IMPORTANT: Keep search term when changing limit -->
-            <input type="hidden" name="search" value="<%= typeof search !== 'undefined' ? search : '' %>">
-            
-            <!-- prettier-ignore -->
             <select name="limit" id="limit" class="limit-select"> 
               <option value="10" <%= currentLimit === 10 ? 'selected' : '' %>>10</option>
               <option value="20" <%= currentLimit === 20 ? 'selected' : '' %>>20</option>
@@ -56,9 +75,28 @@
           </form>
         </div>
 
+        <!-- Active Filters Display -->
+        <% if (search || selectedCategory) { %>
+          <div class="active-filters">
+            <span class="filter-label">Active filters:</span>
+            <% if (search) { %>
+              <span class="filter-tag">
+                Search: "<%= search %>"
+                <a href="/products?limit=<%= currentLimit %>&category=<%= selectedCategory %>" class="filter-clear">×</a>
+              </span>
+            <% } %>
+            <% if (selectedCategory) { %>
+              <span class="filter-tag">
+                Category: <%= selectedCategory %>
+                <a href="/products?limit=<%= currentLimit %>&search=<%= search || '' %>" class="filter-clear">×</a>
+              </span>
+            <% } %>
+            <a href="/products?limit=<%= currentLimit %>" class="clear-all-filters">Clear all</a>
+          </div>
+        <% } %>
+
         <div class="dashboard-section">
           <% if (products && products.length > 0) { %>
-
             <div class="products-container">
               <table class="products-table">
                 <thead>
@@ -73,7 +111,6 @@
                     <th>Delete</th>
                   </tr>
                 </thead>
-
                 <tbody>
                   <% products.forEach((product, index) => { %>
                     <tr>
@@ -82,17 +119,14 @@
                           <%= ((currentPage - 1) * currentLimit) + index + 1 %>
                         </span>
                       </td>
-
                       <td><%= product.name %></td>
                       <td><%= product.sku %></td>
                       <td><%= product.price %></td>
                       <td><%= product.quantity %></td>
                       <td><%= product.description %></td>
-
                       <td class="table-actions">
                         <a href="/products/edit/<%= product.id %>" class="table-btn">Update</a>
                       </td>
-
                       <td class="table-actions">
                         <form
                           action="/products/delete/<%= product.id %>"
@@ -101,7 +135,6 @@
                           data-name="<%= product.name %>"
                         >
                           <input type="hidden" name="_csrf" value="<%= csrfToken %>" />
-
                           <button type="submit" class="table-btn table-btn-danger">
                             Delete
                           </button>
@@ -112,10 +145,9 @@
                 </tbody>
               </table>
             </div>
-
           <% } else { %>
             <p class="no-products">
-              No products found <%= typeof search !== 'undefined' && search ? `matching "${search}"` : '' %>.
+              No products found<% if (search || selectedCategory) { %> with current filters<% } %>.
             </p>
           <% } %>
         </div>
@@ -123,13 +155,13 @@
         <!-- Pagination -->
         <% if (totalPages > 1) { %>
           <div class="pagination-wrapper">
-
+            <% 
+              const baseUrl = `/products?limit=${currentLimit}&search=${encodeURIComponent(search || '')}&category=${encodeURIComponent(selectedCategory)}`;
+            %>
+            
             <!-- Previous -->
             <% if (currentPage > 1) { %>
-              <a
-                href="/products?page=<%= currentPage - 1 %>&limit=<%= currentLimit %>&search=<%= typeof search !== 'undefined' ? search : '' %>"
-                class="page-link"
-              >
+              <a href="<%= baseUrl %>&page=<%= currentPage - 1 %>" class="page-link">
                 &larr; Previous
               </a>
             <% } else { %>
@@ -157,14 +189,14 @@
             %>
 
             <% if (totalPages > 7 && currentPage > 4) { %>
-              <a href="/products?page=1&limit=<%= currentLimit %>&search=<%= typeof search !== 'undefined' ? search : '' %>" class="page-link">1</a>
+              <a href="<%= baseUrl %>&page=1" class="page-link">1</a>
               <span class="page-link dots">...</span>
             <% } %>
 
-            <!-- Page numbers Loop (Updated with search param) -->
+            <!-- Page numbers Loop -->
             <% for (let i = startPage; i <= endPage; i++) { %>
               <a
-                href="/products?page=<%= i %>&limit=<%= currentLimit %>&search=<%= typeof search !== 'undefined' ? search : '' %>"
+                href="<%= baseUrl %>&page=<%= i %>"
                 class="page-link <%= currentPage === i ? 'active' : '' %>"
               >
                 <%= i %>
@@ -173,21 +205,17 @@
 
             <% if (totalPages > 7 && currentPage + 3 < totalPages) { %>
               <span class="page-link dots">...</span>
-              <a href="/products?page=<%= totalPages %>&limit=<%= currentLimit %>&search=<%= typeof search !== 'undefined' ? search : '' %>" class="page-link"><%= totalPages %></a>
+              <a href="<%= baseUrl %>&page=<%= totalPages %>" class="page-link"><%= totalPages %></a>
             <% } %>
 
             <!-- Next -->
             <% if (currentPage < totalPages) { %>
-              <a
-                href="/products?page=<%= currentPage + 1 %>&limit=<%= currentLimit %>&search=<%= typeof search !== 'undefined' ? search : '' %>"
-                class="page-link"
-              >
+              <a href="<%= baseUrl %>&page=<%= currentPage + 1 %>" class="page-link">
                 Next &rarr;
               </a>
             <% } else { %>
               <span class="page-link disabled">Next &rarr;</span>
             <% } %>
-
           </div>
         <% } %>
 
@@ -196,7 +224,6 @@
         </footer>
       </div>
     </div>
-
     <script src="/js/app.js"></script>
   </body>
 </html>

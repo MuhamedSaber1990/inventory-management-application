@@ -1,41 +1,60 @@
 import db from "../config/database.js";
 import { randomBarCode, SKU } from "../utils/helpers.js";
 
-export async function getProducts(limit, offset, search = "") {
-  let query = "SELECT * FROM products";
+export async function getCategories() {
+  const result = await db.query(
+    "SELECT DISTINCT category FROM products WHERE category IS NOT NULL ORDER BY category ASC"
+  );
+  return result.rows;
+}
+
+// Handle Search AND Category logic
+export async function countProducts(search = "", category = "") {
+  let query = "SELECT COUNT(*) FROM products WHERE 1=1";
   const params = [];
+  let paramIndex = 1;
 
   if (search) {
-    query += " WHERE name ILIKE $1 OR sku ILIKE $1 OR description ILIKE $1";
+    query += ` AND (name ILIKE $${paramIndex} OR sku ILIKE $${paramIndex} OR description ILIKE $${paramIndex})`;
     params.push(`%${search}%`);
+    paramIndex++;
   }
 
-  if (search) {
-    query += " ORDER BY id ASC LIMIT $2 OFFSET $3";
-    params.push(limit, offset);
-  } else {
-    query += " ORDER BY id ASC LIMIT $1 OFFSET $2";
-    params.push(limit, offset);
+  if (category) {
+    query += ` AND category = $${paramIndex}`;
+    params.push(category);
+    paramIndex++;
   }
+
+  const result = await db.query(query, params);
+  return parseInt(result.rows[0].count, 10);
+}
+
+//Handle Search AND Category AND Pagination
+export async function getProducts(limit, offset, search = "", category = "") {
+  let query = "SELECT * FROM products WHERE 1=1";
+  const params = [];
+  let paramIndex = 1;
+
+  if (search) {
+    query += ` AND (name ILIKE $${paramIndex} OR sku ILIKE $${paramIndex} OR description ILIKE $${paramIndex})`;
+    params.push(`%${search}%`);
+    paramIndex++;
+  }
+
+  if (category) {
+    query += ` AND category = $${paramIndex}`;
+    params.push(category);
+    paramIndex++;
+  }
+
+  query += ` ORDER BY id ASC LIMIT $${paramIndex} OFFSET $${paramIndex + 1}`;
+  params.push(limit, offset);
 
   const result = await db.query(query, params);
   return result.rows;
 }
 
-//get count total products for pagination
-export async function countProducts(search = "") {
-  let query = " SELECT COUNT(*) FROM products";
-  const params = [];
-
-  if (search) {
-    query += " WHERE name ILIKE $1 OR sku ILIKE $1 OR description ILIKE $1";
-    params.push(`%${search}%`);
-  }
-  const result = await db.query(query, params);
-  return parseInt(result.rows[0].count, 10);
-}
-
-// Fetch single product by ID
 export async function getProductsByID(id) {
   const products = await db.query("Select * from products WHERE id = $1", [id]);
   return products.rows[0];

@@ -3,6 +3,7 @@ import { generateCsrfToken } from "../config/csrf.js";
 import {
   getProducts,
   countProducts,
+  getCategories,
   getProductsByID,
   updateProducts,
   addProducts,
@@ -16,25 +17,27 @@ export async function showProducts(req, res) {
   const page = parseInt(req.query.page) || 1;
   let limit = parseInt(req.query.limit) || 10;
   const search = req.query.search || "";
+  const category = req.query.category || "";
 
-  //min 10 & max 80
   if (limit < 1) limit = 10;
   if (limit > 80) limit = 80;
 
-  //Calculate Offset
   const offset = (page - 1) * limit;
 
   try {
-    const [products, totalItems] = await Promise.all([
-      getProducts(limit, offset, search),
-      countProducts(search),
+    // Fetch Products, Count, AND Categories list
+    const [products, totalItems, categories] = await Promise.all([
+      getProducts(limit, offset, search, category),
+      countProducts(search, category),
+      getCategories(),
     ]);
 
     const totalPages = Math.ceil(totalItems / limit);
 
-    console.log(products);
     res.render("products.ejs", {
       products,
+      categories,
+      selectedCategory: category,
       csrfToken,
       currentPage: page,
       totalPages,
@@ -44,7 +47,7 @@ export async function showProducts(req, res) {
     });
   } catch (error) {
     console.error(error);
-    res.status(500).send("Invalid credentials");
+    res.status(500).send("Error fetching products");
   }
 }
 
