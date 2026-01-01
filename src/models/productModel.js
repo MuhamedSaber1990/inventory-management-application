@@ -137,3 +137,23 @@ export async function getLowStockProducts() {
   const result = await db.query(query);
   return result.rows;
 }
+
+export async function getAllProductsForExport() {
+  const query = ` SELECT
+  p.id,
+  p.name,
+  p.sku,
+  p.bar_code,
+  p.price,
+  p.quantity,
+  p.description,
+  c.name as category_name,
+  p.created_at,
+  p.updated_at
+  FROM products p
+  LEFT JOIN categories c ON P.category_id = c.id
+  ORDER BY p.id ASC
+  `;
+  const result = await db.query(query);
+  return result.rows;
+}

@@ -13,8 +13,19 @@
           <p>Your inventory items (<%= totalItems %> total)</p>
         </header>
         
+        <!-- DASHBOARD ACTIONS -->
         <div class="dashboard-actions right">
-          <a href="/products/add" class="auth-btn">Add Product</a>
+          <!-- Export CSV Button -->
+          <a 
+            href="/data/export/products/csv?search=<%= typeof search !== 'undefined' ? search : '' %>&category=<%= typeof selectedCategory !== 'undefined' ? selectedCategory : '' %>" 
+            class="auth-btn btn-ghost w-auto" 
+            target="_blank"
+          >
+            Export CSV
+          </a>
+
+          <!-- Add Product Button -->
+          <a href="/products/add" class="auth-btn w-auto">Add Product</a>
         </div>
 
         <!-- CONTROLS BAR (Search + Category + Limit) -->
@@ -46,7 +57,7 @@
               <input type="hidden" name="limit" value="<%= currentLimit %>">
               <input type="hidden" name="search" value="<%= search || '' %>">
               
-              <select name="category" id="category" class="filter-select">
+              <select name="category" id="category" class="filter-select" onchange="document.getElementById('categoryForm').submit()">
                 <option value="">All Categories</option>
                 <% if (categories && categories.length > 0) { %>
                   <% categories.forEach(cat => { %>
@@ -79,12 +90,14 @@
         <% if (search || selectedCategory) { %>
           <div class="active-filters">
             <span class="filter-label">Active filters:</span>
+            
             <% if (search) { %>
               <span class="filter-tag">
                 Search: "<%= search %>"
                 <a href="/products?limit=<%= currentLimit %>&category=<%= selectedCategory %>" class="filter-clear">×</a>
               </span>
             <% } %>
+
             <% if (selectedCategory) { %>
               <% 
                 const selectedCat = categories.find(c => c.id == selectedCategory);
@@ -95,6 +108,7 @@
                 <a href="/products?limit=<%= currentLimit %>&search=<%= search || '' %>" class="filter-clear">×</a>
               </span>
             <% } %>
+
             <a href="/products?limit=<%= currentLimit %>" class="clear-all-filters">Clear all</a>
           </div>
         <% } %>
@@ -110,7 +124,7 @@
                     <th>Category</th>
                     <th>SKU</th>
                     <th>Price (€)</th>
-                    <th>Quantity</th>
+                    <th>Qty</th>
                     <th>Description</th>
                     <th>Update</th>
                     <th>Delete</th>
@@ -126,13 +140,7 @@
                       </td>
                       <td><%= product.name %></td>
                       <td>
-                        <span style="
-                          background: rgba(99, 102, 241, 0.15);
-                          padding: 4px 8px;
-                          border-radius: 6px;
-                          font-size: 0.85rem;
-                          font-weight: 600;
-                        ">
+                        <span class="category-badge">
                           <%= product.category_name || 'Uncategorized' %>
                         </span>
                       </td>
@@ -236,7 +244,7 @@
         <% } %>
 
         <footer class="auth-footer footer-actions">
-          <a href="/dashboard" class="auth-btn">Back to Dashboard</a>
+          <a href="/dashboard" class="auth-btn btn-ghost w-auto">Back to Dashboard</a>
         </footer>
       </div>
     </div>

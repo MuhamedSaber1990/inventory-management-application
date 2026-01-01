@@ -3,6 +3,7 @@ import { Router } from "express";
 import authRoutes from "./authRoutes.js";
 import productRoutes from "./productRoutes.js";
 import categoryRoutes from "./categoryRoutes.js";
+import exportImportRoutes from "./exportImportRoutes.js";
 
 const router = Router();
 
@@ -15,4 +16,5 @@ router.use("/products", productRoutes);
 // Category routes are mounted under /categories
 router.use("/categories", categoryRoutes);
 
+router.use("/data", exportImportRoutes);
 export default router;
