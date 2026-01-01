@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Categories</title>
+    <link rel="stylesheet" href="/css/app.css" />
+  </head>
+  <body class="auth-body">
+    <div class="auth-wrapper">
+      <div class="auth-card">
+        <header class="auth-header">
+          <h1>Product Categories</h1>
+          <p>Manage your product categories (<%= categories.length %> total)</p>
+        </header>
+
+        <div class="dashboard-actions right">
+          <a href="/categories/add" class="auth-btn">Add Category</a>
+        </div>
+
+        <div class="dashboard-section">
+          <% if (categories && categories.length > 0) { %>
+          <div class="products-container">
+            <table class="products-table">
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Name</th>
+                  <th>Description</th>
+                  <th>Products</th>
+                  <th>Created</th>
+                  <th>Edit</th>
+                  <th>Delete</th>
+                </tr>
+              </thead>
+              <tbody>
+                <% categories.forEach((category, index) => { %>
+                <tr>
+                  <td class="id-cell">
+                    <span class="id-pill"><%= index + 1 %></span>
+                  </td>
+                  <td><strong><%= category.name %></strong></td>
+                  <td><%= category.description || 'No description' %></td>
+                  <td style="text-align: center">
+                    <span class="stock-badge"
+                      ><%= category.product_count %></span
+                    >
+                  </td>
+                  <td>
+                    <%= new Date(category.created_at).toLocaleDateString() %>
+                  </td>
+                  <td class="table-actions">
+                    <% if (category.name !== 'Uncategorized') { %>
+                    <a
+                      href="/categories/edit/<%= category.id %>"
+                      class="table-btn"
+                    >
+                      Edit
+                    </a>
+                    <% } else { %>
+                    <span
+                      class="table-btn"
+                      style="opacity: 0.3; cursor: not-allowed"
+                    >
+                      Edit
+                    </span>
+                    <% } %>
+                  </td>
+                  <td class="table-actions">
+                    <% if (category.name !== 'Uncategorized') { %>
+                    <form
+                      action="/categories/delete/<%= category.id %>"
+                      method="POST"
+                      class="delete-form"
+                      data-name="<%= category.name %>"
+                    >
+                      <input
+                        type="hidden"
+                        name="_csrf"
+                        value="<%= csrfToken %>"
+                      />
+                      <button type="submit" class="table-btn table-btn-danger">
+                        Delete
+                      </button>
+                    </form>
+                    <% } else { %>
+                    <span
+                      class="table-btn"
+                      style="opacity: 0.3; cursor: not-allowed"
+                    >
+                      Delete
+                    </span>
+                    <% } %>
+                  </td>
+                </tr>
+                <% }) %>
+              </tbody>
+            </table>
+          </div>
+          <% } else { %>
+          <p class="no-products">No categories found.</p>
+          <% } %>
+        </div>
+
+        <footer class="auth-footer footer-actions">
+          <a href="/dashboard" class="auth-btn">Back to Dashboard</a>
+        </footer>
+      </div>
+    </div>
+    <script src="/js/app.js"></script>
+  </body>
+</html>

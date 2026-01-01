@@ -1,92 +1,103 @@
--- ============================================
---  Inventory System - Database Schema
--- ============================================
-
--- Drop tables if they exist (optional, for clean reset)
-DROP TABLE IF EXISTS products;
-DROP TABLE IF EXISTS users;
+-- Inventory Management System
 
 -- ============================================
---  Updated Users Table
+-- 1. USERS TABLE (Authentication)
 -- ============================================
-
-CREATE TABLE users (
-    id SERIAL PRIMARY KEY,
-    name VARCHAR(100) NOT NULL,
-    email VARCHAR(255) NOT NULL UNIQUE,
-    password_hash VARCHAR(255) NOT NULL,
-
-    -- User management
-    role VARCHAR(20) NOT NULL DEFAULT 'user'
-        CHECK (role IN ('user', 'admin', 'manager')),
-    is_active BOOLEAN NOT NULL DEFAULT true,
-    email_verified BOOLEAN NOT NULL DEFAULT false,
-
-    -- Security
-    verification_token VARCHAR(255),
-    verification_token_expiry TIMESTAMP,
-    reset_token VARCHAR(255),
-    reset_token_expiry TIMESTAMP,
-    last_login TIMESTAMP,
-
-    -- Timestamps
-    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-
-    -- Constraints
-    CONSTRAINT chk_email_format
-      CHECK (email ~* '^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$')
+CREATE TABLE IF NOT EXISTS users (
+  id SERIAL PRIMARY KEY,
+  name VARCHAR(100) NOT NULL,
+  email VARCHAR(255) UNIQUE NOT NULL,
+  password_hash VARCHAR(255) NOT NULL,
+  email_verified BOOLEAN DEFAULT FALSE,
+  verification_token VARCHAR(255),
+  verification_token_expiry TIMESTAMP,
+  reset_token VARCHAR(255),
+  reset_token_expiry TIMESTAMP,
+  last_login TIMESTAMP,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
+-- Index for faster email lookups
+CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
 
 -- ============================================
---  Products Table
+-- 2. CATEGORIES TABLE
 -- ============================================
-
-CREATE TABLE products (
-    id SERIAL PRIMARY KEY,
-
-    -- Product identity
-    name        VARCHAR(200) NOT NULL,
-    sku         VARCHAR(50) UNIQUE,              -- optional internal code
-    bar_code    VARCHAR(50) NOT NULL UNIQUE,     -- scanner code, must be unique
-
-    -- Pricing & inventory
-    price       NUMERIC(10,2) NOT NULL CHECK (price >= 0),
-    cost_price  NUMERIC(10,2) CHECK (cost_price >= 0),
-    quantity    INTEGER NOT NULL DEFAULT 0 CHECK (quantity >= 0),
-    min_quantity INTEGER NOT NULL DEFAULT 10 CHECK (min_quantity >= 0),
-
-    -- Categorization & description
-    category    VARCHAR(100),
-    description TEXT NOT NULL,
-
-    -- Media
-    image_url   TEXT,
-
-    -- Status
-    status VARCHAR(20) NOT NULL DEFAULT 'active'
-        CHECK (status IN ('active', 'inactive', 'discontinued')),
-
-    -- Timestamps / soft delete
-    created_at  TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_at  TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    deleted_at  TIMESTAMP,
-
-    -- Extra constraints
-    CONSTRAINT chk_name_length
-        CHECK (char_length(name) BETWEEN 2 AND 200),
-
-    CONSTRAINT chk_price_greater_than_cost
-        CHECK (price >= cost_price OR cost_price IS NULL)
+CREATE TABLE IF NOT EXISTS categories (
+  id SERIAL PRIMARY KEY,
+  name VARCHAR(100) UNIQUE NOT NULL,
+  description TEXT,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
--- Helpful indexes
-CREATE INDEX idx_products_name     ON products(name);
-CREATE INDEX idx_products_category ON products(category);
-CREATE INDEX idx_products_status   ON products(status);
+-- Index for faster name lookups and sorting
+CREATE INDEX IF NOT EXISTS idx_categories_name ON categories(name);
 
--- Index for faster token lookups
-CREATE INDEX IF NOT EXISTS idx_users_verification_token 
-ON users(verification_token) 
-WHERE verification_token IS NOT NULL;
+-- Insert default category
+INSERT INTO categories (name, description) 
+VALUES ('Uncategorized', 'Products without a specific category')
+ON CONFLICT (name) DO NOTHING;
+
+-- ============================================
+-- 3. PRODUCTS TABLE
+-- ============================================
+CREATE TABLE IF NOT EXISTS products (
+  id SERIAL PRIMARY KEY,
+  name VARCHAR(250) NOT NULL,
+  sku VARCHAR(50) UNIQUE,
+  bar_code VARCHAR(50) UNIQUE,
+  price NUMERIC(10, 2) NOT NULL CHECK (price >= 0),
+  quantity INTEGER NOT NULL DEFAULT 0 CHECK (quantity >= 0),
+  description TEXT NOT NULL,
+  category_id INTEGER REFERENCES categories(id) ON DELETE SET NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Indexes for better query performance
+CREATE INDEX IF NOT EXISTS idx_products_name ON products(name);
+CREATE INDEX IF NOT EXISTS idx_products_sku ON products(sku);
+CREATE INDEX IF NOT EXISTS idx_products_bar_code ON products(bar_code);
+CREATE INDEX IF NOT EXISTS idx_products_category_id ON products(category_id);
+CREATE INDEX IF NOT EXISTS idx_products_quantity ON products(quantity);
+CREATE INDEX IF NOT EXISTS idx_products_price ON products(price);
+
+-- Composite index for search queries (name, sku, description)
+CREATE INDEX IF NOT EXISTS idx_products_search 
+ON products USING gin(to_tsvector('english', name || ' ' || COALESCE(sku, '') || ' ' || description));
+
+-- ============================================
+-- 4. TRIGGERS - Auto-update timestamps
+-- ============================================
+
+-- Function to update updated_at timestamp
+CREATE OR REPLACE FUNCTION update_updated_at_column()
+RETURNS TRIGGER AS $$
+BEGIN
+    NEW.updated_at = CURRENT_TIMESTAMP;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Trigger for users table
+DROP TRIGGER IF EXISTS update_users_updated_at ON users;
+CREATE TRIGGER update_users_updated_at
+BEFORE UPDATE ON users
+FOR EACH ROW
+EXECUTE FUNCTION update_updated_at_column();
+
+-- Trigger for categories table
+DROP TRIGGER IF EXISTS update_categories_updated_at ON categories;
+CREATE TRIGGER update_categories_updated_at
+BEFORE UPDATE ON categories
+FOR EACH ROW
+EXECUTE FUNCTION update_updated_at_column();
+
+-- Trigger for products table
+DROP TRIGGER IF EXISTS update_products_updated_at ON products;
+CREATE TRIGGER update_products_updated_at
+BEFORE UPDATE ON products
+FOR EACH ROW
+EXECUTE FUNCTION update_updated_at_column();

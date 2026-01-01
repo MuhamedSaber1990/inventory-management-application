@@ -4,79 +4,105 @@
     <meta charset="UTF-8" />
     <title>Add Product</title>
     <link rel="stylesheet" href="/css/app.css" />
+    <link rel="stylesheet" href="/css/form.css" />
   </head>
-
   <body class="auth-body">
-    <div class="auth-wrapper">
+    <div class="auth-wrapper" style="max-width: 600px;">
       <div class="auth-card">
-        <!-- HEADER -->
         <header class="auth-header">
-          <h1>Add a New Product</h1>
-          <p>Fill in the details to add a new item to your inventory.</p>
+          <h1>Add New Product</h1>
+          <p>Create a new inventory item</p>
         </header>
-        <!-- ERROR MESSAGE (from validateUpdateProducts) -->
-        <% if (typeof errorMessage !== "undefined" && errorMessage) { %>
-        <div class="auth-alert auth-alert-error"><%= errorMessage %></div>
+
+        <% if (errorMessage) { %>
+          <div class="auth-alert auth-alert-error">
+            ⚠️ <%= errorMessage %>
+          </div>
         <% } %>
-        <!-- FORM -->
+
         <form action="/products/new" method="POST" class="auth-form">
           <input type="hidden" name="_csrf" value="<%= csrfToken %>" />
-          <div class="auth-field">
-            <label for="name">Product Name</label>
+
+          <div class="form-group">
+            <label for="name" class="form-label">Product Name *</label>
             <input
               type="text"
               id="name"
               name="name"
-              placeholder="Enter product name"
+              class="form-input"
+              placeholder="e.g., Wireless Mouse"
+              value="<%= old.name || '' %>"
               required
-              value="<%= old && old.name ? old.name : '' %>"
             />
           </div>
 
-          <div class="auth-field">
-            <label for="price">Price (€)</label>
-            <input
-              type="number"
-              id="price"
-              name="price"
-              step="0.01"
-              placeholder="Enter price"
-              required
-              value="<%= old && old.price ? old.price : '' %>"
-            />
+          <div class="form-group">
+            <label for="category_id" class="form-label">Category</label>
+            <select id="category_id" name="category_id" class="form-input">
+              <option value="">-- Select Category (Optional) --</option>
+              <% if (categories && categories.length > 0) { %>
+                <% categories.forEach(category => { %>
+                  <option 
+                    value="<%= category.id %>" 
+                    <%= old.category_id == category.id ? 'selected' : '' %>
+                  >
+                    <%= category.name %>
+                  </option>
+                <% }) %>
+              <% } %>
+            </select>
           </div>
 
-          <div class="auth-field">
-            <label for="quantity">Quantity</label>
-            <input
-              type="number"
-              id="quantity"
-              name="quantity"
-              placeholder="Enter quantity"
-              required
-              value="<%= old && old.quantity ? old.quantity : '' %>"
-            />
+          <div class="form-row">
+            <div class="form-group">
+              <label for="price" class="form-label">Price (€) *</label>
+              <input
+                type="number"
+                id="price"
+                name="price"
+                class="form-input"
+                step="0.01"
+                min="1"
+                max="1000000"
+                placeholder="29.99"
+                value="<%= old.price || '' %>"
+                required
+              />
+            </div>
+
+            <div class="form-group">
+              <label for="quantity" class="form-label">Quantity *</label>
+              <input
+                type="number"
+                id="quantity"
+                name="quantity"
+                class="form-input"
+                min="0"
+                max="10000"
+                placeholder="100"
+                value="<%= old.quantity || '' %>"
+                required
+              />
+            </div>
           </div>
 
-          <div class="auth-field">
-            <label for="description">Description</label>
+          <div class="form-group">
+            <label for="description" class="form-label">Description *</label>
             <textarea
               id="description"
               name="description"
-              placeholder="Enter product description"
+              class="form-input"
               rows="4"
+              placeholder="Detailed product description..."
               required
-              value="<%= old && old.description ? old.description : '' %>"
-            ></textarea>
+            ><%= old.description || '' %></textarea>
           </div>
 
-          <button class="auth-btn" type="submit">Add Product</button>
+          <div class="form-actions">
+            <button type="submit" class="auth-btn">Create Product</button>
+            <a href="/products" class="btn-secondary">Cancel</a>
+          </div>
         </form>
-
-        <!-- BACK BUTTON -->
-        <div class="dashboard-actions">
-          <a href="/dashboard" class="auth-btn">Back to Dashboard</a>
-        </div>
       </div>
     </div>
   </body>

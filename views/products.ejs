@@ -50,8 +50,8 @@
                 <option value="">All Categories</option>
                 <% if (categories && categories.length > 0) { %>
                   <% categories.forEach(cat => { %>
-                    <option value="<%= cat.category %>" <%= selectedCategory === cat.category ? 'selected' : '' %>>
-                      <%= cat.category %>
+                    <option value="<%= cat.id %>" <%= selectedCategory == cat.id ? 'selected' : '' %>>
+                      <%= cat.name %>
                     </option>
                   <% }) %>
                 <% } %>
@@ -86,8 +86,12 @@
               </span>
             <% } %>
             <% if (selectedCategory) { %>
+              <% 
+                const selectedCat = categories.find(c => c.id == selectedCategory);
+                const categoryName = selectedCat ? selectedCat.name : 'Unknown';
+              %>
               <span class="filter-tag">
-                Category: <%= selectedCategory %>
+                Category: <%= categoryName %>
                 <a href="/products?limit=<%= currentLimit %>&search=<%= search || '' %>" class="filter-clear">×</a>
               </span>
             <% } %>
@@ -103,6 +107,7 @@
                   <tr>
                     <th>ID</th>
                     <th>Name</th>
+                    <th>Category</th>
                     <th>SKU</th>
                     <th>Price (€)</th>
                     <th>Quantity</th>
@@ -120,6 +125,17 @@
                         </span>
                       </td>
                       <td><%= product.name %></td>
+                      <td>
+                        <span style="
+                          background: rgba(99, 102, 241, 0.15);
+                          padding: 4px 8px;
+                          border-radius: 6px;
+                          font-size: 0.85rem;
+                          font-weight: 600;
+                        ">
+                          <%= product.category_name || 'Uncategorized' %>
+                        </span>
+                      </td>
                       <td><%= product.sku %></td>
                       <td><%= product.price %></td>
                       <td><%= product.quantity %></td>

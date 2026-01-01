@@ -2,83 +2,30 @@
 --  Seed Data for Inventory System (20 Products)
 -- ============================================
 
-INSERT INTO products (name, price, quantity, description, bar_code) VALUES
-('AeroSound Wireless Headphones X5', 79.99, 25,
- 'Bluetooth 5.2 noise-cancelling headphones with 40-hour battery life.',
- '7351912045873'),
+-- ============================================
+--  Seed Data: 20 Products
+-- ============================================
 
-('VoltPro Smartwatch S3', 129.50, 14,
- 'Water-resistant smartwatch with heart-rate monitor and GPS tracking.',
- '4893201176542'),
-
-('LuminaPad Tablet 10.1', 249.00, 8,
- '10.1-inch HD tablet with fast USB-C charging and 64GB storage.',
- '9127480053318'),
-
-('Wireless SoundBar X300', 129.99, 12,
- 'High-quality Bluetooth soundbar with deep bass and cinema surround.',
- '6901523847291'),
-
-('UltraView 24 Inch Monitor', 149.00, 20,
- 'Full HD 24-inch display with 75Hz refresh rate and ultra-thin bezels.',
- '5048392759612'),
-
-('SmartHome Security Camera S5', 59.50, 18,
- '1080p indoor security camera with night vision and motion alerts.',
- '9183756201473'),
-
-('FastCharge Power Bank 20000mAh', 34.99, 30,
- 'Portable fast-charging power bank with dual USB ports.',
- '7359821047163'),
-
-('ProGaming Mouse G402', 45.00, 25,
- 'RGB gaming mouse with 8 programmable buttons and 16000 DPI sensor.',
- '6812047359182'),
-
-('AirGo Wireless Earbuds Lite', 29.99, 40,
- 'Lightweight earbuds with 20-hour playtime and touch control.',
- '5792018643029'),
-
-('EcoHeat Mini Room Heater', 39.90, 14,
- 'Energy-efficient portable heater with auto-shutoff and 3 heat modes.',
- '8129475306124'),
-
-('SteelPad Laptop Cooling Stand', 22.50, 35,
- 'Aluminum laptop stand with twin silent cooling fans.',
- '9218472036571'),
-
-('SkyTune Bluetooth Car Adapter', 17.99, 50,
- 'Hands-free car Bluetooth adapter with FM transmitter and USB charging.',
- '7348192065481'),
-
-('BrightLite USB Desk Lamp', 14.50, 38,
- 'LED desk lamp with adjustable brightness and flexible neck.',
- '8402915734418'),
-
-('TurboClean Keyboard Vacuum', 19.90, 42,
- 'Mini USB vacuum cleaner designed for keyboards and electronics.',
- '6128974305128'),
-
-('FlexCharge 6-Port USB Hub', 24.99, 28,
- 'Smart USB hub with fast-charging ports and surge protection.',
- '7043182957403'),
-
-('NanoDrive 1TB Portable SSD', 109.99, 11,
- 'High-speed portable SSD with 1TB storage and 540MB/s read speed.',
- '5309182746130'),
-
-('VisionCam Outdoor Pro', 89.99, 9,
- 'Weather-resistant outdoor surveillance camera with night vision.',
- '9730426184512'),
-
-('SmartPlug Home S2', 16.99, 60,
- 'WiFi smart plug compatible with Alexa and Google Assistant.',
- '8274913652043'),
-
-('ChargeMaster 30W USB-C Charger', 21.49, 33,
- '30W USB-C fast charger compatible with all modern smartphones.',
- '9047123864510'),
-
-('GripTech Phone Holder XL', 9.99, 100,
- 'Universal car phone mount with 360° rotation and strong grip.',
- '6901842374512');
+INSERT INTO products 
+(name, sku, bar_code, price, cost_price, quantity, min_quantity, category, description, status) 
+VALUES
+('ProBook X1 Laptop', 'LAP-001', '1000000000001', 1200.00, 850.00, 15, 5, 'Electronics', 'High-performance laptop with 16GB RAM and 512GB SSD.', 'active'),
+('ErgoFit Office Chair', 'FUR-101', '1000000000002', 249.99, 120.00, 8, 10, 'Furniture', 'Ergonomic mesh chair with lumbar support.', 'active'),
+('Wireless Noise-Cancel Headphones', 'AUD-201', '1000000000003', 199.50, 90.00, 25, 10, 'Audio', 'Over-ear headphones with 30-hour battery life.', 'active'),
+('Mechanical Keyboard RGB', 'ACC-301', '1000000000004', 89.99, 45.00, 40, 15, 'Accessories', 'Tactile mechanical switches with customizable RGB lighting.', 'active'),
+('4K Ultra Monitor 27"', 'MON-401', '1000000000005', 320.00, 210.00, 12, 5, 'Electronics', '27-inch IPS display with HDR support.', 'active'),
+('Smartphone Stand Aluminum', 'ACC-302', '1000000000006', 15.99, 5.50, 100, 20, 'Accessories', 'Adjustable aluminum stand for phones and tablets.', 'active'),
+('Smart LED Bulb', 'HOM-501', '1000000000007', 12.50, 4.00, 60, 20, 'Smart Home', 'WiFi-enabled RGB bulb compatible with Alexa/Google.', 'active'),
+('Bluetooth Speaker Mini', 'AUD-202', '1000000000008', 29.99, 12.00, 35, 10, 'Audio', 'Portable waterproof speaker with deep bass.', 'active'),
+('USB-C Hub 7-in-1', 'ACC-303', '1000000000009', 45.00, 18.00, 22, 10, 'Accessories', 'Expands USB-C port to HDMI, USB 3.0, and SD card reader.', 'active'),
+('Gaming Mouse Precision', 'ACC-304', '1000000000010', 55.00, 25.00, 18, 10, 'Accessories', 'High DPI gaming mouse with programmable buttons.', 'active'),
+('Standing Desk Motorized', 'FUR-102', '1000000000011', 450.00, 280.00, 4, 2, 'Furniture', 'Dual-motor electric standing desk with memory presets.', 'active'),
+('Webcam 1080p HD', 'ELE-005', '1000000000012', 65.00, 30.00, 14, 10, 'Electronics', 'Wide-angle webcam with privacy shutter.', 'active'),
+('External SSD 1TB', 'STO-601', '1000000000013', 110.00, 75.00, 20, 5, 'Storage', 'Rugged portable SSD with fast transfer speeds.', 'active'),
+('Wi-Fi 6 Router', 'NET-701', '1000000000014', 130.00, 80.00, 9, 5, 'Networking', 'Dual-band router for high-speed home internet.', 'active'),
+('Cable Organizer Clips', 'ORG-801', '1000000000015', 5.99, 1.50, 150, 30, 'Organization', 'Pack of 10 adhesive cable management clips.', 'active'),
+('Laptop Sleeve 15"', 'ACC-305', '1000000000016', 19.99, 8.00, 45, 15, 'Accessories', 'Water-resistant protective sleeve with soft lining.', 'active'),
+('Power Bank 20000mAh', 'ACC-306', '1000000000017', 39.99, 20.00, 30, 10, 'Accessories', 'Fast charging portable battery for multiple devices.', 'active'),
+('Smart Security Camera', 'HOM-502', '1000000000018', 59.99, 35.00, 16, 5, 'Smart Home', 'Indoor camera with night vision and motion detection.', 'active'),
+('Screen Cleaning Kit', 'CLN-901', '1000000000019', 9.99, 3.00, 75, 20, 'Cleaning', 'Microfiber cloth and cleaning solution spray.', 'active'),
+('Wireless Charging Pad', 'ACC-307', '1000000000020', 24.99, 10.00, 28, 10, 'Accessories', '15W fast wireless charger for Qi-enabled devices.', 'active');

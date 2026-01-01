@@ -1,4 +1,3 @@
-// Product controller: handles product CRUD operations and form rendering
 import { generateCsrfToken } from "../config/csrf.js";
 import {
   getProducts,
@@ -17,7 +16,7 @@ export async function showProducts(req, res) {
   const page = parseInt(req.query.page) || 1;
   let limit = parseInt(req.query.limit) || 10;
   const search = req.query.search || "";
-  const category = req.query.category || "";
+  const categoryId = req.query.category || ""; // Now using category_id
 
   if (limit < 1) limit = 10;
   if (limit > 80) limit = 80;
@@ -25,10 +24,9 @@ export async function showProducts(req, res) {
   const offset = (page - 1) * limit;
 
   try {
-    // Fetch Products, Count, AND Categories list
     const [products, totalItems, categories] = await Promise.all([
-      getProducts(limit, offset, search, category),
-      countProducts(search, category),
+      getProducts(limit, offset, search, categoryId),
+      countProducts(search, categoryId),
       getCategories(),
     ]);
 
@@ -37,7 +35,7 @@ export async function showProducts(req, res) {
     res.render("products.ejs", {
       products,
       categories,
-      selectedCategory: category,
+      selectedCategory: categoryId,
       csrfToken,
       currentPage: page,
       totalPages,
@@ -54,63 +52,98 @@ export async function showProducts(req, res) {
 // Display add product form
 export async function showAddProductForm(req, res) {
   const csrfToken = generateCsrfToken(req, res);
-  res.render("addproduct.ejs", { errorMessage: null, old: {}, csrfToken });
+
+  try {
+    const categories = await getCategories();
+    res.render("addproduct.ejs", {
+      errorMessage: null,
+      old: {},
+      categories,
+      csrfToken,
+    });
+  } catch (error) {
+    console.error("Error loading categories:", error);
+    res.status(500).send("Error loading form");
+  }
 }
 
-// Create new product and redirect to product list
+// Create new product
 export async function addProductHandler(req, res) {
-  const { name, price, quantity, description } = req.body;
+  const { name, price, quantity, description, category_id } = req.body;
+
   try {
-    await addProducts(name, price, quantity, description);
+    await addProducts(name, price, quantity, description, category_id || null);
     res.redirect("/products");
   } catch (error) {
-    console.error("Error in /products/new:", error);
+    console.error("Error creating product:", error);
     const csrfToken = generateCsrfToken(req, res);
-    const { name, price, quantity, description } = req.body;
+    const categories = await getCategories();
+
     res.status(500).render("addproduct.ejs", {
       errorMessage: "Server error while creating product",
-      old: { name, price, quantity, description },
+      old: { name, price, quantity, description, category_id },
+      categories,
       csrfToken,
     });
   }
 }
+
 // Load product for editing
 export async function updateProductsFrom(req, res) {
   const { id } = req.params;
   const csrfToken = generateCsrfToken(req, res);
+
   try {
-    const product = await getProductsByID(id);
+    const [product, categories] = await Promise.all([
+      getProductsByID(id),
+      getCategories(),
+    ]);
+
     if (!product) {
       return res.status(404).send("Product not found");
     }
-    res.render("editproduct.ejs", { product, csrfToken });
+
+    res.render("editproduct.ejs", {
+      product,
+      categories,
+      csrfToken,
+    });
   } catch (err) {
     console.error("Error loading product for edit:", err);
     res.status(500).send("Error loading product");
   }
 }
 
-// Update product details and redirect to product list
+// Update product
 export async function updateProductHandeler(req, res) {
-  const { name, price, quantity, description } = req.body;
+  const { name, price, quantity, description, category_id } = req.body;
   const { id } = req.params;
+
   try {
-    await updateProducts(id, name, price, quantity, description);
+    await updateProducts(
+      id,
+      name,
+      price,
+      quantity,
+      description,
+      category_id || null
+    );
     res.redirect("/products");
   } catch (error) {
-    console.error("Error in /products/edit:", error);
-    res.status(500).send("Invalid credentials");
+    console.error("Error updating product:", error);
+    res.status(500).send("Error updating product");
   }
 }
 
-// Delete product and redirect to product list
+// Delete product
 export async function deleteProductHandler(req, res) {
   const { id } = req.params;
+
   try {
     await deleteProduct(id);
     res.redirect("/products");
   } catch (error) {
-    console.error("Error in /products/delete:", error);
-    res.status(500).send("Invalid credentials");
+    console.error("Error deleting product:", error);
+    res.status(500).send("Error deleting product");
   }
 }
