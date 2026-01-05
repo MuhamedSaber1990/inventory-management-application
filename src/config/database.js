@@ -3,19 +3,23 @@ import dotenv from "dotenv";
 
 dotenv.config();
 
-// PostgreSQL client from env credentials
-const db = new pg.Client({
+// Use a connection pool so callers can `await db.connect()` safely
+const db = new pg.Pool({
   user: process.env.DB_USER,
   host: process.env.DB_HOST,
   database: process.env.DB_NAME,
   password: process.env.DB_PASSWORD,
   port: process.env.DB_PORT,
+  max: 20,
+  idleTimeoutMillis: 30000,
+  connectionTimeoutMillis: 2000,
 });
 
 const connectDB = async () => {
   try {
-    await db.connect();
-    console.log("✅ Database connected successfully");
+    const client = await db.connect();
+    client.release();
+    console.log("✅ Database pool created and connection verified");
   } catch (error) {
     console.error("❌ Database connection failed:", error.message);
     process.exit(1);

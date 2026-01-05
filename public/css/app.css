@@ -246,7 +246,7 @@ body {
 }
 .products-table th:nth-child(6),
 .products-table td:nth-child(6) {
-  min-width: 320px;
+  min-width: 50px;
   white-space: normal;
 }
 .products-table td.id-cell {

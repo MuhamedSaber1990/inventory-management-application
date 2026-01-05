@@ -16,7 +16,7 @@ export async function showProducts(req, res) {
   const page = parseInt(req.query.page) || 1;
   let limit = parseInt(req.query.limit) || 10;
   const search = req.query.search || "";
-  const categoryId = req.query.category || ""; // Now using category_id
+  const categoryId = req.query.category || "";
 
   if (limit < 1) limit = 10;
   if (limit > 80) limit = 80;
@@ -115,7 +115,7 @@ export async function updateProductsFrom(req, res) {
 }
 
 // Update product
-export async function updateProductHandeler(req, res) {
+export async function updateProductHandler(req, res) {
   const { name, price, quantity, description, category_id } = req.body;
   const { id } = req.params;
 

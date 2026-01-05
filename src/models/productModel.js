@@ -157,3 +157,53 @@ export async function getAllProductsForExport() {
   const result = await db.query(query);
   return result.rows;
 }
+
+// Bulk import products
+export async function importProductsBulk(products) {
+  const client = await db.connect();
+
+  try {
+    await client.query("BEGIN");
+
+    let successCount = 0;
+
+    for (const product of products) {
+      try {
+        await client.query(
+          `INSERT INTO products (name, sku, bar_code, price, quantity, description, category_id)
+           VALUES ($1, $2, $3, $4, $5, $6, $7)
+           ON CONFLICT (sku) DO UPDATE
+           SET 
+             name = EXCLUDED.name,
+             bar_code = EXCLUDED.bar_code,
+             price = EXCLUDED.price,
+             quantity = EXCLUDED.quantity,
+             description = EXCLUDED.description,
+             category_id = EXCLUDED.category_id,
+             updated_at = NOW()`,
+          [
+            product.name,
+            product.sku,
+            product.bar_code,
+            product.price,
+            product.quantity,
+            product.description,
+            product.category_id,
+          ]
+        );
+        successCount++;
+      } catch (error) {
+        console.error(`Error importing product ${product.name}:`, error);
+        // Continue with other products even if one fails
+      }
+    }
+
+    await client.query("COMMIT");
+    return { success: true, count: successCount };
+  } catch (error) {
+    await client.query("ROLLBACK");
+    throw error;
+  } finally {
+    client.release();
+  }
+}

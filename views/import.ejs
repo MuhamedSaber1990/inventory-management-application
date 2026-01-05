@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Import Products</title>
+    <link rel="stylesheet" href="/css/app.css" />
+  </head>
+  <body class="auth-body">
+    <div class="auth-wrapper" style="max-width: 600px">
+      <div class="auth-card">
+        <header class="auth-header" style="text-align: center">
+          <h1>Import Products</h1>
+          <p>Upload a CSV file to bulk add inventory.</p>
+        </header>
+
+        <!-- Instructions -->
+        <div
+          class="auth-alert"
+          style="
+            background: rgba(99, 102, 241, 0.1);
+            color: #e0e7ff;
+            display: block;
+            margin-bottom: 20px;
+          "
+        >
+          <strong>CSV Format Requirements:</strong><br />
+          <ul style="margin: 10px 0 0 20px; font-size: 0.85rem">
+            <li><strong>Headers:</strong> Name, Price, Quantity</li>
+            <li>
+              <strong>Optional:</strong> SKU, Barcode, Description, Category
+            </li>
+            <li>If Category doesn't exist, it defaults to "Uncategorized".</li>
+          </ul>
+        </div>
+
+        <!-- Success Message -->
+        <% if (typeof successMessage !== 'undefined' && successMessage) { %>
+        <div class="auth-alert auth-alert-success"><%= successMessage %></div>
+        <% } %>
+
+        <!-- Error Message -->
+        <% if (typeof errorMessage !== 'undefined' && errorMessage) { %>
+        <div class="auth-alert auth-alert-error"><%= errorMessage %></div>
+        <% } %>
+
+        <!-- Import Form -->
+        <!-- enctype="multipart/form-data" is REQUIRED for file uploads -->
+        <form
+          action="/data/import/products"
+          method="POST"
+          enctype="multipart/form-data"
+          class="auth-form"
+        >
+          <input type="hidden" name="_csrf" value="<%= csrfToken %>" />
+
+          <div class="auth-field">
+            <label for="csvFile">Choose CSV File</label>
+            <input
+              type="file"
+              id="csvFile"
+              name="csvFile"
+              accept=".csv"
+              required
+              style="
+                padding: 10px;
+                background: rgba(255, 255, 255, 0.05);
+                border-radius: 8px;
+                border: 1px solid var(--border-subtle);
+                color: var(--text-main);
+              "
+            />
+          </div>
+
+          <button type="submit" class="auth-btn">Upload and Import</button>
+        </form>
+
+        <footer class="auth-footer footer-actions">
+          <a href="/products" class="auth-btn btn-ghost w-auto">Cancel</a>
+        </footer>
+      </div>
+    </div>
+  </body>
+</html>

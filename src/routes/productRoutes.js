@@ -32,7 +32,7 @@ router.post(
   doubleCsrfProtection,
   productRules,
   validateUpdateProducts,
-  productController.updateProductHandeler
+  productController.updateProductHandler
 );
 router.post(
   "/delete/:id",
