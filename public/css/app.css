@@ -956,3 +956,15 @@ body {
   border-color: var(--accent);
   outline: none;
 }
+
+/* ============ LINK CARDS (For Data Management) ============ */
+a.stat-card {
+  text-decoration: none;
+  cursor: pointer;
+}
+
+/* Make the text inside smaller than the main KPI cards */
+a.stat-card .stat-value {
+  font-size: 1.4rem;
+  margin-top: 4px;
+}

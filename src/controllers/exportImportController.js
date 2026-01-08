@@ -197,3 +197,35 @@ USB Cable,UC-003,5555555555555,9.99,100,USB-C to USB-A cable 2m,Accessories`;
   );
   res.send(template);
 }
+
+// DATABASE BACKUP (PostgreSQL dump)
+export async function backupDatabase(req, res) {
+  try {
+    const { exec } = await import("child_process");
+    const { promisify } = await import("util");
+    const execPromise = promisify(exec);
+
+    const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
+    const filename = `backup_${timestamp}.sql`;
+
+    // PostgreSQL dump command
+    const command = `pg_dump -U ${process.env.DB_USER} -h ${process.env.DB_HOST} -p ${process.env.DB_PORT} ${process.env.DB_NAME}`;
+
+    // Set password via environment variable
+    const { stdout, stderr } = await execPromise(command, {
+      env: { ...process.env, PGPASSWORD: process.env.DB_PASSWORD },
+    });
+
+    if (stderr && !stderr.includes("WARNING")) {
+      throw new Error(stderr);
+    }
+
+    // Send backup as download
+    res.setHeader("Content-Type", "application/sql");
+    res.setHeader("Content-Disposition", `attachment; filename=${filename}`);
+    res.send(stdout);
+  } catch (error) {
+    console.error("Backup Error:", error);
+    res.status(500).send("Error creating database backup: " + error.message);
+  }
+}

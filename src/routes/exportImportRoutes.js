@@ -41,4 +41,7 @@ router.post(
 // Download CSV template
 router.get("/template/csv", exportImportController.downloadCSVTemplate);
 
+// Database backup
+router.get("/backup/database", exportImportController.backupDatabase);
+
 export default router;

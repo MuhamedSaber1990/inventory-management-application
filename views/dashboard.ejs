@@ -22,7 +22,7 @@
             <span class="stat-value"><%= stats.total_items %></span>
           </div>
 
-          <!-- Card 2: Total Value (Formatted as Currency) -->
+          <!-- Card 2: Total Value -->
           <div class="stat-card money">
             <span class="stat-label">Total Value</span>
             <span class="stat-value">
@@ -59,7 +59,34 @@
           </form>
         </div>
 
-        <!-- 3. LOW STOCK ALERTS SECTION -->
+        <!-- 3. DATA MANAGEMENT SECTION -->
+        <div class="dashboard-section">
+          <div class="section-header">
+            <h2>Data Management</h2>
+          </div>
+
+          <div class="stats-grid">
+            <!-- Export CSV -->
+            <a href="/data/export/products/csv" class="stat-card">
+              <span class="stat-label">Export CSV</span>
+              <span class="stat-value">Text File</span>
+            </a>
+
+            <!-- Import CSV -->
+            <a href="/data/import" class="stat-card">
+              <span class="stat-label">Import</span>
+              <span class="stat-value">Upload</span>
+            </a>
+
+            <!-- Backup DB -->
+            <a href="/data/backup/database" class="stat-card alert">
+              <span class="stat-label">Backup</span>
+              <span class="stat-value">SQL Dump</span>
+            </a>
+          </div>
+        </div>
+
+        <!-- 4. LOW STOCK ALERTS SECTION -->
         <% if (lowStockProducts.length > 0) { %>
         <div class="dashboard-section">
           <div class="section-header">
@@ -75,7 +102,6 @@
                   <span class="stock-badge"><%= product.quantity %> left</span>
                 </td>
                 <td style="text-align: right; width: 80px">
-                  <!-- Quick Link to Edit -->
                   <a
                     href="/products/edit/<%= product.id %>"
                     class="auth-link-small"
