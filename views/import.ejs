@@ -6,31 +6,34 @@
     <link rel="stylesheet" href="/css/app.css" />
   </head>
   <body class="auth-body">
-    <div class="auth-wrapper" style="max-width: 600px">
+    <div class="auth-wrapper import-wrapper">
       <div class="auth-card">
-        <header class="auth-header" style="text-align: center">
+        <header class="auth-header header-center">
           <h1>Import Products</h1>
           <p>Upload a CSV file to bulk add inventory.</p>
         </header>
 
-        <!-- Instructions -->
-        <div
-          class="auth-alert"
-          style="
-            background: rgba(99, 102, 241, 0.1);
-            color: #e0e7ff;
-            display: block;
-            margin-bottom: 20px;
-          "
-        >
-          <strong>CSV Format Requirements:</strong><br />
-          <ul style="margin: 10px 0 0 20px; font-size: 0.85rem">
-            <li><strong>Headers:</strong> Name, Price, Quantity</li>
-            <li>
-              <strong>Optional:</strong> SKU, Barcode, Description, Category
-            </li>
-            <li>If Category doesn't exist, it defaults to "Uncategorized".</li>
-          </ul>
+        <!-- Instructions & Template -->
+        <div class="info-box">
+          <!-- 1. Download Link -->
+          <div class="template-section">
+            <strong>Step 1:</strong>
+            <a href="/data/template/csv" class="template-link">
+              Download Sample CSV Template
+            </a>
+          </div>
+
+          <!-- 2. Requirements -->
+          <div>
+            <strong>Step 2: Check Requirements</strong>
+            <ul class="info-list">
+              <li><strong>Headers:</strong> Name, Price, Quantity</li>
+              <li>
+                <strong>Optional:</strong> SKU, Barcode, Description, Category
+              </li>
+              <li>New categories are created automatically.</li>
+            </ul>
+          </div>
         </div>
 
         <!-- Success Message -->
@@ -44,7 +47,6 @@
         <% } %>
 
         <!-- Import Form -->
-        <!-- enctype="multipart/form-data" is REQUIRED for file uploads -->
         <form
           action="/data/import/products"
           method="POST"
@@ -54,20 +56,14 @@
           <input type="hidden" name="_csrf" value="<%= csrfToken %>" />
 
           <div class="auth-field">
-            <label for="csvFile">Choose CSV File</label>
+            <label for="csvFile">Step 3: Upload CSV File</label>
             <input
               type="file"
               id="csvFile"
               name="csvFile"
               accept=".csv"
               required
-              style="
-                padding: 10px;
-                background: rgba(255, 255, 255, 0.05);
-                border-radius: 8px;
-                border: 1px solid var(--border-subtle);
-                color: var(--text-main);
-              "
+              class="file-input"
             />
           </div>
 

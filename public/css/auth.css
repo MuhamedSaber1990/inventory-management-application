@@ -1,99 +1,23 @@
-/* ============ GLOBAL ============ */
+/* ============ AUTH-SPECIFIC OVERRIDES ============ */
+/* This file only contains authentication page specific styles */
+/* All shared styles are in app.css */
 
-*,
-*::before,
-*::after {
-  box-sizing: border-box;
-}
-
-:root {
-  --bg-main: #050816;
-  --bg-card: rgba(15, 23, 42, 0.9);
-  --accent: #6366f1;
-  --accent-soft: rgba(99, 102, 241, 0.15);
-  --accent-hover: #4f46e5;
-  --border-subtle: rgba(148, 163, 184, 0.4);
-  --text-main: #e5e7eb;
-  --text-muted: #9ca3af;
-  --error: #f97373;
-  --success: #4ade80;
-  --radius-lg: 18px;
-  --transition: 150ms ease-out;
-}
-
-body {
-  margin: 0;
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
-    sans-serif;
-  color: var(--text-main);
-  background: radial-gradient(circle at top, #1d2340 0, #020617 60%);
-}
-
-/* ============ LAYOUT (AUTH PAGES) ============ */
-
-.auth-body {
-  min-height: 100vh;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 24px;
-}
-
+/* Override wrapper width for auth pages */
 .auth-wrapper {
-  width: 100%;
-  max-width: 420px; /* FIXED SIZE card for login/signup */
+  max-width: 420px !important;
 }
 
+/* Override body alignment for auth pages */
+.auth-body {
+  align-items: center !important;
+}
+
+/* Override card padding for auth pages */
 .auth-card {
-  background: var(--bg-card);
-  border-radius: var(--radius-lg);
-  padding: 26px 24px 24px;
-  border: 1px solid rgba(148, 163, 184, 0.25);
-  box-shadow: 0 20px 40px rgba(15, 23, 42, 0.75),
-    0 0 0 1px rgba(15, 23, 42, 0.7);
-  backdrop-filter: blur(20px);
+  padding: 26px 24px 24px !important;
 }
 
-/* ============ HEADER ============ */
-
-.auth-header h1 {
-  margin: 0 0 6px;
-  font-size: 1.6rem;
-  font-weight: 600;
-}
-
-.auth-header p {
-  margin: 0;
-  font-size: 0.9rem;
-  color: var(--text-muted);
-}
-
-/* ============ ALERTS ============ */
-
-.auth-alert {
-  margin-top: 14px;
-  padding: 10px 12px;
-  border-radius: 10px;
-  font-size: 0.85rem;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  border: 1px solid transparent;
-}
-
-.auth-alert-error {
-  background: rgba(248, 113, 113, 0.08);
-  border-color: rgba(248, 113, 113, 0.7);
-  color: #fecaca;
-}
-
-.auth-alert-success {
-  background: rgba(74, 222, 128, 0.1);
-  border-color: rgba(74, 222, 128, 0.65);
-  color: #bbf7d0;
-}
-
-/* ============ FORM ============ */
+/* ============ FORM FIELDS ============ */
 
 .auth-form {
   margin-top: 18px;
@@ -137,7 +61,7 @@ body {
   transform: translateY(-1px);
 }
 
-/* ============ EXTRA ROW (remember / forgot) ============ */
+/* ============ REMEMBER / FORGOT ROW ============ */
 
 .auth-extra {
   margin-top: 4px;
@@ -159,48 +83,7 @@ body {
   accent-color: var(--accent);
 }
 
-/* ============ BUTTON ============ */
-
-.auth-btn {
-  margin-top: 12px;
-  width: 100%;
-  padding: 11px 14px;
-  border-radius: 999px;
-  border: none;
-  background: linear-gradient(135deg, var(--accent), #a855f7);
-  color: white;
-  font-weight: 600;
-  font-size: 0.95rem;
-  cursor: pointer;
-  letter-spacing: 0.02em;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  transition: transform 90ms ease-out, box-shadow 90ms ease-out,
-    filter 90ms ease-out;
-  box-shadow: 0 14px 30px rgba(99, 102, 241, 0.45);
-}
-
-.auth-btn:hover {
-  filter: brightness(1.05);
-  transform: translateY(-1px);
-  box-shadow: 0 18px 38px rgba(99, 102, 241, 0.55);
-}
-
-.auth-btn:active {
-  transform: translateY(1px) scale(0.99);
-  box-shadow: 0 10px 20px rgba(15, 23, 42, 0.8);
-}
-
-/* ============ LINKS / FOOTER ============ */
-
-.auth-footer {
-  margin-top: 18px;
-  text-align: center;
-  font-size: 0.86rem;
-  color: var(--text-muted);
-}
+/* ============ AUTH LINKS ============ */
 
 .auth-link {
   margin-left: 6px;
@@ -227,11 +110,78 @@ body {
   color: var(--accent);
 }
 
-/* ============ RESPONSIVE ============ */
+/* ============ AUTH ICON (signup-success) ============ */
+
+.auth-icon {
+  width: 64px;
+  height: 64px;
+  margin: 0 auto 20px;
+  color: var(--accent);
+  stroke-width: 1.5;
+}
+
+.text-center {
+  text-align: center;
+}
+
+/* ============ FILE INPUT (import page) ============ */
+
+.file-input {
+  padding: 10px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 8px;
+  border: 1px solid var(--border-subtle);
+  color: var(--text-main);
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 0.9rem;
+  transition: border-color var(--transition), background var(--transition);
+}
+
+.file-input:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: var(--accent);
+}
+
+.file-input:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.15);
+}
+
+/* ============ INFO BOX (import instructions) ============ */
+
+.info-box {
+  background: rgba(99, 102, 241, 0.1);
+  color: #e0e7ff;
+  padding: 14px 16px;
+  border-radius: 10px;
+  margin-bottom: 20px;
+  border: 1px solid rgba(99, 102, 241, 0.2);
+}
+
+.info-box strong {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 0.95rem;
+}
+
+.info-box ul {
+  margin: 10px 0 0 20px;
+  font-size: 0.85rem;
+  padding-left: 0;
+}
+
+.info-box li {
+  margin-bottom: 6px;
+  line-height: 1.5;
+}
+
+/* ============ RESPONSIVE (AUTH) ============ */
 
 @media (max-width: 480px) {
   .auth-card {
-    padding: 22px 18px 20px;
+    padding: 22px 18px 20px !important;
   }
 
   .auth-header h1 {

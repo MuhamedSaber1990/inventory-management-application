@@ -183,3 +183,17 @@ export async function importProductsCSV(req, res) {
     });
   }
 }
+
+export function downloadCSVTemplate(req, res) {
+  const template = `Name,SKU,Barcode,Price,Quantity,Description,Category
+Wireless Mouse,WM-001,1234567890123,29.99,50,Ergonomic wireless mouse with USB receiver,Electronics
+Office Chair,OC-002,9876543210987,199.99,20,Adjustable office chair with lumbar support,Furniture
+USB Cable,UC-003,5555555555555,9.99,100,USB-C to USB-A cable 2m,Accessories`;
+
+  res.setHeader("Content-Type", "text/csv; charset=utf-8");
+  res.setHeader(
+    "Content-Disposition",
+    "attachment; filename=products_template.csv"
+  );
+  res.send(template);
+}

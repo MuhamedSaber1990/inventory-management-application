@@ -5,8 +5,20 @@ import { requireAuth } from "../middleware/auth.js";
 import * as exportImportController from "../controllers/exportImportController.js";
 
 // Configure Multer (Memory Storage)
-const upload = multer({ storage: multer.memoryStorage() });
-
+const upload = multer({
+  storage: multer.memoryStorage(),
+  limits: {
+    fileSize: 5 * 1024 * 1024, // 5MB limit
+  },
+  fileFilter: (req, file, cb) => {
+    // Only accept CSV files
+    if (file.mimetype === "text/csv" || file.originalname.endsWith(".csv")) {
+      cb(null, true);
+    } else {
+      cb(new Error("Only CSV files are allowed"));
+    }
+  },
+});
 const router = Router();
 
 // Protect routes
@@ -25,5 +37,8 @@ router.post(
   doubleCsrfProtection,
   exportImportController.importProductsCSV
 );
+
+// Download CSV template
+router.get("/template/csv", exportImportController.downloadCSVTemplate);
 
 export default router;
