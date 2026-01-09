@@ -7,6 +7,7 @@ import {
   updateProducts,
   addProducts,
   deleteProduct,
+  bulkDeleteProducts,
 } from "../models/productModel.js";
 
 // Fetch and display all products
@@ -145,5 +146,20 @@ export async function deleteProductHandler(req, res) {
   } catch (error) {
     console.error("Error deleting product:", error);
     res.status(500).send("Error deleting product");
+  }
+}
+
+// Handle Bulk Delete
+export async function handleBulkDelete(req, res) {
+  const { ids } = req.body;
+  if (!ids) return res.redirect("/products");
+
+  try {
+    const idArray = ids.split(",");
+    await bulkDeleteProducts(idArray);
+    res.redirect("/products");
+  } catch (error) {
+    console.error("Bulk Delete Error:", error);
+    res.status(500).send("Error deleting products");
   }
 }

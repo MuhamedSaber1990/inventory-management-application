@@ -207,3 +207,9 @@ export async function importProductsBulk(products) {
     client.release();
   }
 }
+
+// Bulk Delete
+export async function bulkDeleteProducts(ids) {
+  // ids is an array [1, 2, 3]
+  await db.query("DELETE FROM products WHERE id = ANY($1::int[])", [ids]);
+}

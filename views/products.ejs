@@ -24,7 +24,7 @@
             Export CSV
           </a>
 
-          <!-- 2. NEW: Import CSV -->
+          <!-- 2. Import CSV -->
           <a href="/data/import" class="auth-btn btn-ghost w-auto">
             Import CSV
           </a>
@@ -95,14 +95,12 @@
         <% if (search || selectedCategory) { %>
           <div class="active-filters">
             <span class="filter-label">Active filters:</span>
-            
             <% if (search) { %>
               <span class="filter-tag">
                 Search: "<%= search %>"
                 <a href="/products?limit=<%= currentLimit %>&category=<%= selectedCategory %>" class="filter-clear">×</a>
               </span>
             <% } %>
-
             <% if (selectedCategory) { %>
               <% 
                 const selectedCat = categories.find(c => c.id == selectedCategory);
@@ -113,7 +111,6 @@
                 <a href="/products?limit=<%= currentLimit %>&search=<%= search || '' %>" class="filter-clear">×</a>
               </span>
             <% } %>
-
             <a href="/products?limit=<%= currentLimit %>" class="clear-all-filters">Clear all</a>
           </div>
         <% } %>
@@ -124,6 +121,10 @@
               <table class="products-table">
                 <thead>
                   <tr>
+                    <!-- Checkbox Column -->
+                    <th class="text-center" style="width: 40px;">
+                      <input type="checkbox" id="selectAll" style="cursor: pointer;">
+                    </th>
                     <th>ID</th>
                     <th>Name</th>
                     <th>Category</th>
@@ -138,6 +139,11 @@
                 <tbody>
                   <% products.forEach((product, index) => { %>
                     <tr>
+                      <!-- Item Checkbox -->
+                      <td class="text-center">
+                        <input type="checkbox" class="item-checkbox" value="<%= product.id %>" style="cursor: pointer;">
+                      </td>
+
                       <td class="id-cell">
                         <span class="id-pill">
                           <%= ((currentPage - 1) * currentLimit) + index + 1 %>
@@ -151,8 +157,8 @@
                       </td>
                       <td><%= product.sku %></td>
                       <td><%= product.price %></td>
-                      <td><%= product.quantity %></td>
-                      <td><%= product.description %></td>
+                      <td class="text-center"><%= product.quantity %></td>
+                      <td class="description"><%= product.description %></td>
                       <td class="table-actions">
                         <a href="/products/edit/<%= product.id %>" class="table-btn">Update</a>
                       </td>
@@ -251,6 +257,24 @@
         <footer class="auth-footer footer-actions">
           <a href="/dashboard" class="auth-btn btn-ghost w-auto">Back to Dashboard</a>
         </footer>
+
+        <!-- FLOATING BULK DELETE BAR -->
+        <div id="bulkActionBar" class="bulk-bar">
+          <div class="bulk-info">
+            <span id="selectedCount" style="font-weight: bold; color: var(--accent);">0</span> items selected
+          </div>
+
+          <div class="bulk-actions">
+            <form action="/products/bulk/delete" method="POST" id="bulkDeleteForm">
+              <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+              <input type="hidden" name="ids" id="bulkIdsInput">
+              <button type="submit" class="bulk-btn-danger">
+                Delete Selected
+              </button>
+            </form>
+          </div>
+        </div>
+
       </div>
     </div>
     <script src="/js/app.js"></script>

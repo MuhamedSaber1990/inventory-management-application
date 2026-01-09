@@ -40,4 +40,11 @@ router.post(
   productController.deleteProductHandler
 );
 
+// BULK OPERATIONS
+router.post(
+  "/bulk/delete",
+  doubleCsrfProtection,
+  productController.handleBulkDelete
+);
+
 export default router;
