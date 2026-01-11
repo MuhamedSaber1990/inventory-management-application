@@ -8,6 +8,8 @@ import {
   addProducts,
   deleteProduct,
   bulkDeleteProducts,
+  bulkUpdateQuantity,
+  bulkUpdateCategory,
 } from "../models/productModel.js";
 
 // Fetch and display all products
@@ -161,5 +163,41 @@ export async function handleBulkDelete(req, res) {
   } catch (error) {
     console.error("Bulk Delete Error:", error);
     res.status(500).send("Error deleting products");
+  }
+}
+
+// Handle Bulk Quantity Change
+export async function handleBulkQuantity(req, res) {
+  const { ids, quantity } = req.body;
+  if (!ids) return res.redirect("/products");
+
+  try {
+    const idArray = ids.split(",");
+    const qtyValue = parseInt(quantity, 10);
+
+    if (isNaN(qtyValue) || qtyValue < 0) {
+      return res.status(400).send("Invalid quantity");
+    }
+
+    await bulkUpdateQuantity(idArray, qtyValue);
+    res.redirect("/products");
+  } catch (error) {
+    console.error("Bulk Quantity Error:", error);
+    res.status(500).send("Error updating quantities");
+  }
+}
+
+// Handle Bulk Category Change
+export async function handleBulkCategory(req, res) {
+  const { ids, category_id } = req.body;
+  if (!ids) return res.redirect("/products");
+
+  try {
+    const idArray = ids.split(",");
+    await bulkUpdateCategory(idArray, category_id);
+    res.redirect("/products");
+  } catch (error) {
+    console.error("Bulk Category Error:", error);
+    res.status(500).send("Error updating categories");
   }
 }

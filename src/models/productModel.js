@@ -213,3 +213,19 @@ export async function bulkDeleteProducts(ids) {
   // ids is an array [1, 2, 3]
   await db.query("DELETE FROM products WHERE id = ANY($1::int[])", [ids]);
 }
+
+// Bulk Set Quantity
+export async function bulkUpdateQuantity(ids, quantity) {
+  await db.query(
+    "UPDATE products SET quantity = $1, updated_at = NOW() WHERE id = ANY($2::int[])",
+    [quantity, ids]
+  );
+}
+
+// Bulk Assign Category
+export async function bulkUpdateCategory(ids, categoryId) {
+  await db.query(
+    "UPDATE products SET category_id = $1, updated_at = NOW() WHERE id = ANY($2::int[])",
+    [categoryId, ids]
+  );
+}

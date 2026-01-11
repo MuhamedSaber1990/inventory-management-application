@@ -46,5 +46,14 @@ router.post(
   doubleCsrfProtection,
   productController.handleBulkDelete
 );
-
+router.post(
+  "/bulk/quantity",
+  doubleCsrfProtection,
+  productController.handleBulkQuantity
+);
+router.post(
+  "/bulk/category",
+  doubleCsrfProtection,
+  productController.handleBulkCategory
+);
 export default router;
