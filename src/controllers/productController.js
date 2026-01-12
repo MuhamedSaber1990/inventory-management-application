@@ -18,18 +18,27 @@ export async function showProducts(req, res) {
 
   const page = parseInt(req.query.page) || 1;
   let limit = parseInt(req.query.limit) || 10;
-  const search = req.query.search || "";
-  const categoryId = req.query.category || "";
-
   if (limit < 1) limit = 10;
   if (limit > 80) limit = 80;
-
   const offset = (page - 1) * limit;
+
+  const search = req.query.search || "";
+  const category = req.query.category || "";
+
+  const filters = {
+    minPrice: req.query.minPrice || "",
+    maxPrice: req.query.maxPrice || "",
+    stockStatus: req.query.stockStatus || "",
+    fromDate: req.query.fromDate || "",
+    toDate: req.query.toDate || "",
+    sortBy: req.query.sortBy || "id",
+    sortOrder: req.query.sortOrder || "ASC",
+  };
 
   try {
     const [products, totalItems, categories] = await Promise.all([
-      getProducts(limit, offset, search, categoryId),
-      countProducts(search, categoryId),
+      getProducts(limit, offset, search, category, filters),
+      countProducts(search, category, filters),
       getCategories(),
     ]);
 
@@ -38,13 +47,14 @@ export async function showProducts(req, res) {
     res.render("products.ejs", {
       products,
       categories,
-      selectedCategory: categoryId,
+      selectedCategory: category,
       csrfToken,
       currentPage: page,
       totalPages,
       totalItems,
       currentLimit: limit,
       search,
+      filters,
     });
   } catch (error) {
     console.error(error);

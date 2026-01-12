@@ -15,7 +15,19 @@
         
         <!-- DASHBOARD ACTIONS -->
         <div class="dashboard-actions right">
-          <!-- 1. Export CSV -->
+          <!-- 1. Filter Toggle -->
+          <button 
+            type="button" 
+            class="auth-btn btn-ghost w-auto" 
+            onclick="document.getElementById('advancedFilters').classList.toggle('show')"
+          >
+            <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="margin-right: 6px;">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"></path>
+            </svg>
+            Filters
+          </button>
+
+          <!-- 2. Export CSV -->
           <a 
             href="/data/export/products/csv?search=<%= typeof search !== 'undefined' ? search : '' %>&category=<%= typeof selectedCategory !== 'undefined' ? selectedCategory : '' %>" 
             class="auth-btn btn-ghost w-auto" 
@@ -24,24 +36,19 @@
             Export CSV
           </a>
 
-          <!-- 2. Import CSV -->
-          <a href="/data/import" class="auth-btn btn-ghost w-auto">
-            Import CSV
-          </a>
+          <!-- 3. Import CSV -->
+          <a href="/data/import" class="auth-btn btn-ghost w-auto">Import CSV</a>
 
-          <!-- 3. Add Product -->
+          <!-- 4. Add Product -->
           <a href="/products/add" class="auth-btn w-auto">Add Product</a>
         </div>
 
-        <!-- CONTROLS BAR (Search + Category + Limit) -->
+        <!-- CONTROLS BAR (Basic Search) -->
         <div class="controls-bar">
-          
-          <!-- LEFT SIDE: Search & Category -->
+          <!-- Search -->
           <div class="filter-group">
-            <!-- 1. SEARCH FORM -->
             <form action="/products" method="GET" class="search-form">
               <input type="hidden" name="limit" value="<%= currentLimit %>">
-              <input type="hidden" name="category" value="<%= selectedCategory %>">
               <input 
                 type="text" 
                 name="search" 
@@ -52,37 +59,20 @@
                 autocomplete="off"
               >
               <button type="submit" class="search-btn">
-                <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
-                </svg>
+                <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
               </button>
             </form>
-
-            <!-- 2. CATEGORY FILTER -->
-            <form action="/products" method="GET" id="categoryForm" class="category-filter">
-              <input type="hidden" name="page" value="1">
-              <input type="hidden" name="limit" value="<%= currentLimit %>">
-              <input type="hidden" name="search" value="<%= search || '' %>">
-              
-              <select name="category" id="category" class="filter-select">
-                <option value="">All Categories</option>
-                <% if (categories && categories.length > 0) { %>
-                  <% categories.forEach(cat => { %>
-                    <option value="<%= cat.id %>" <%= selectedCategory == cat.id ? 'selected' : '' %>>
-                      <%= cat.name %>
-                    </option>
-                  <% }) %>
-                <% } %>
-              </select>
-            </form>
           </div>
-
-          <!-- RIGHT SIDE: Items per page -->
-          <form action="/products" method="GET" id="limitForm" class="limit-controls">
+          
+           <!-- Limit Selector -->
+           <form action="/products" method="GET" id="limitForm" class="limit-controls">
             <label for="limit" class="limit-label">Items per page:</label>
             <input type="hidden" name="page" value="1">
-            <input type="hidden" name="search" value="<%= search || '' %>">
-            <input type="hidden" name="category" value="<%= selectedCategory %>">
+            <!-- Keep filters hidden so they persist when changing limit -->
+            <input type="hidden" name="search" value="<%= search %>">
+            <input type="hidden" name="minPrice" value="<%= filters.minPrice %>">
+            <input type="hidden" name="maxPrice" value="<%= filters.maxPrice %>">
+            <input type="hidden" name="stockStatus" value="<%= filters.stockStatus %>">
             
             <select name="limit" id="limit" class="limit-select"> 
               <option value="10" <%= currentLimit === 10 ? 'selected' : '' %>>10</option>
@@ -93,43 +83,90 @@
           </form>
         </div>
 
-        <!-- Active Filters Display -->
-        <% if (search || selectedCategory) { %>
-          <div class="active-filters">
-            <span class="filter-label">Active filters:</span>
-            
-            <% if (search) { %>
-              <span class="filter-tag">
-                Search: "<%= search %>"
-                <a href="/products?limit=<%= currentLimit %>&category=<%= selectedCategory %>" class="filter-clear">×</a>
-              </span>
-            <% } %>
+        <!-- NEW: ADVANCED FILTER PANEL -->
+        <!-- Logic: If filters are active, add 'show' class to keep it open -->
+        <div id="advancedFilters" class="filter-panel <%= (filters.minPrice || filters.maxPrice || filters.stockStatus || filters.fromDate || filters.toDate) ? 'show' : '' %>">
+          <form action="/products" method="GET" class="filter-grid">
+            <!-- Hidden Fields to keep context -->
+            <input type="hidden" name="search" value="<%= search %>">
+            <input type="hidden" name="limit" value="<%= currentLimit %>">
 
-            <% if (selectedCategory) { %>
-              <% 
-                const selectedCat = categories.find(c => c.id == selectedCategory);
-                const categoryName = selectedCat ? selectedCat.name : 'Unknown';
-              %>
-              <span class="filter-tag">
-                Category: <%= categoryName %>
-                <a href="/products?limit=<%= currentLimit %>&search=<%= search || '' %>" class="filter-clear">×</a>
-              </span>
-            <% } %>
+            <!-- 1. Category -->
+            <div class="filter-item">
+              <label>Category</label>
+              <select name="category" class="filter-input">
+                <option value="">All Categories</option>
+                <% if (categories && categories.length > 0) { %>
+                  <% categories.forEach(cat => { %>
+                    <option value="<%= cat.id %>" <%= selectedCategory == cat.id ? 'selected' : '' %>><%= cat.name %></option>
+                  <% }) %>
+                <% } %>
+              </select>
+            </div>
 
-            <a href="/products?limit=<%= currentLimit %>" class="clear-all-filters">Clear all</a>
-          </div>
-        <% } %>
+            <!-- 2. Stock Status -->
+            <div class="filter-item">
+              <label>Stock Status</label>
+              <select name="stockStatus" class="filter-input">
+                <option value="">Any Status</option>
+                <option value="in" <%= filters.stockStatus === 'in' ? 'selected' : '' %>>✅ In Stock</option>
+                <option value="low" <%= filters.stockStatus === 'low' ? 'selected' : '' %>>⚠️ Low Stock</option>
+                <option value="out" <%= filters.stockStatus === 'out' ? 'selected' : '' %>>❌ Out of Stock</option>
+              </select>
+            </div>
 
+            <!-- 3. Price Range -->
+            <div class="filter-item">
+              <label>Price Range (€)</label>
+              <div style="display: flex; gap: 5px;">
+                <input type="number" name="minPrice" placeholder="Min" class="filter-input" value="<%= filters.minPrice %>">
+                <input type="number" name="maxPrice" placeholder="Max" class="filter-input" value="<%= filters.maxPrice %>">
+              </div>
+            </div>
+
+            <!-- 4. Sort By -->
+            <div class="filter-item">
+              <label>Sort By</label>
+              <div style="display: flex; gap: 5px;">
+                <select name="sortBy" class="filter-input">
+                  <option value="id" <%= filters.sortBy === 'id' ? 'selected' : '' %>>ID</option>
+                  <option value="name" <%= filters.sortBy === 'name' ? 'selected' : '' %>>Name</option>
+                  <option value="price" <%= filters.sortBy === 'price' ? 'selected' : '' %>>Price</option>
+                  <option value="quantity" <%= filters.sortBy === 'quantity' ? 'selected' : '' %>>Quantity</option>
+                  <option value="created_at" <%= filters.sortBy === 'created_at' ? 'selected' : '' %>>Date</option>
+                </select>
+                <select name="sortOrder" class="filter-input" style="width: 80px;">
+                  <option value="ASC" <%= filters.sortOrder === 'ASC' ? 'selected' : '' %>>Asc</option>
+                  <option value="DESC" <%= filters.sortOrder === 'DESC' ? 'selected' : '' %>>Desc</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- 5. Date Range -->
+            <div class="filter-item">
+              <label>Created Between</label>
+              <div style="display: flex; gap: 5px;">
+                <input type="date" name="fromDate" class="filter-input" value="<%= filters.fromDate %>">
+                <input type="date" name="toDate" class="filter-input" value="<%= filters.toDate %>">
+              </div>
+            </div>
+
+            <!-- Actions -->
+            <div class="filter-actions-row">
+              <a href="/products" class="auth-link-small" style="margin-right: 15px;">Clear Filters</a>
+              <button type="submit" class="auth-btn" style="width: auto; padding: 8px 20px;">Apply Filters</button>
+            </div>
+          </form>
+        </div>
+
+        <!-- TABLE SECTION -->
         <div class="dashboard-section">
           <% if (products && products.length > 0) { %>
             <div class="products-container">
               <table class="products-table">
                 <thead>
                   <tr>
-                    <!-- Checkbox Column -->
-                    <th class="text-center">
-                      <input type="checkbox" id="selectAll" class="table-checkbox">
-                    </th>
+                    <th class="text-center"><input type="checkbox" id="selectAll" class="table-checkbox"></th>
                     <th>ID</th>
                     <th>Name</th>
                     <th>Category</th>
@@ -144,21 +181,15 @@
                 <tbody id="productTableBody">
                   <% products.forEach((product, index) => { %>
                     <tr>
-                      <!-- Item Checkbox -->
                       <td class="text-center">
                         <input type="checkbox" class="item-checkbox table-checkbox" value="<%= product.id %>">
                       </td>
-
                       <td class="id-cell">
-                        <span class="id-pill">
-                          <%= ((currentPage - 1) * currentLimit) + index + 1 %>
-                        </span>
+                        <span class="id-pill"><%= ((currentPage - 1) * currentLimit) + index + 1 %></span>
                       </td>
                       <td><%= product.name %></td>
                       <td>
-                        <span class="category-badge">
-                          <%= product.category_name || 'Uncategorized' %>
-                        </span>
+                        <span class="category-badge"><%= product.category_name || 'Uncategorized' %></span>
                       </td>
                       <td><%= product.sku %></td>
                       <td><%= product.price %></td>
@@ -168,16 +199,9 @@
                         <a href="/products/edit/<%= product.id %>" class="table-btn">Update</a>
                       </td>
                       <td class="table-actions text-center">
-                        <form
-                          action="/products/delete/<%= product.id %>"
-                          method="POST"
-                          class="delete-form"
-                          data-name="<%= product.name %>"
-                        >
+                        <form action="/products/delete/<%= product.id %>" method="POST" class="delete-form" data-name="<%= product.name %>">
                           <input type="hidden" name="_csrf" value="<%= csrfToken %>" />
-                          <button type="submit" class="table-btn table-btn-danger">
-                            Delete
-                          </button>
+                          <button type="submit" class="table-btn table-btn-danger">Delete</button>
                         </form>
                       </td>
                     </tr>
@@ -186,61 +210,48 @@
               </table>
             </div>
           <% } else { %>
-            <p class="no-products">
-              No products found<% if (search || selectedCategory) { %> with current filters<% } %>.
-            </p>
+            <p class="no-products">No products found with these filters.</p>
           <% } %>
         </div>
 
-        <!-- Pagination -->
+        <!-- PAGINATION (Updated logic for filters) -->
         <% if (totalPages > 1) { %>
-          <div class="pagination-wrapper">
+          <div class="pagination-wrapper" id="paginationContainer">
             <% 
-              const baseUrl = `/products?limit=${currentLimit}&search=${encodeURIComponent(search || '')}&category=${encodeURIComponent(selectedCategory)}`;
-            %>
-            
-            <!-- Previous -->
-            <% if (currentPage > 1) { %>
-              <a href="<%= baseUrl %>&page=<%= currentPage - 1 %>" class="page-link">
-                &larr; Previous
-              </a>
-            <% } else { %>
-              <span class="page-link disabled">&larr; Previous</span>
-            <% } %>
+              // Build URL with ALL filters
+              let params = `limit=${currentLimit}&search=${encodeURIComponent(search || '')}&category=${encodeURIComponent(selectedCategory || '')}`;
+              if (filters.minPrice) params += `&minPrice=${filters.minPrice}`;
+              if (filters.maxPrice) params += `&maxPrice=${filters.maxPrice}`;
+              if (filters.stockStatus) params += `&stockStatus=${filters.stockStatus}`;
+              if (filters.sortBy) params += `&sortBy=${filters.sortBy}`;
+              if (filters.sortOrder) params += `&sortOrder=${filters.sortOrder}`;
+              if (filters.fromDate) params += `&fromDate=${filters.fromDate}`;
+              if (filters.toDate) params += `&toDate=${filters.toDate}`;
+              
+              const baseUrl = `/products?${params}`;
 
-            <!-- Smart Pagination Logic -->
-            <% 
               let startPage, endPage;
-              if (totalPages <= 7) {
-                startPage = 1;
-                endPage = totalPages;
-              } else {
-                if (currentPage <= 4) {
-                  startPage = 1;
-                  endPage = 5;
-                } else if (currentPage + 3 >= totalPages) {
-                  startPage = totalPages - 4;
-                  endPage = totalPages;
-                } else {
-                  startPage = currentPage - 1;
-                  endPage = currentPage + 1;
-                }
+              if (totalPages <= 7) { startPage = 1; endPage = totalPages; } 
+              else {
+                if (currentPage <= 4) { startPage = 1; endPage = 5; } 
+                else if (currentPage + 3 >= totalPages) { startPage = totalPages - 4; endPage = totalPages; } 
+                else { startPage = currentPage - 1; endPage = currentPage + 1; }
               }
             %>
+
+            <% if (currentPage > 1) { %>
+              <a href="<%= baseUrl %>&page=<%= currentPage - 1 %>" class="page-link">&larr; Prev</a>
+            <% } else { %>
+              <span class="page-link disabled">&larr; Prev</span>
+            <% } %>
 
             <% if (totalPages > 7 && currentPage > 4) { %>
               <a href="<%= baseUrl %>&page=1" class="page-link">1</a>
               <span class="page-link dots">...</span>
             <% } %>
 
-            <!-- Page numbers Loop -->
             <% for (let i = startPage; i <= endPage; i++) { %>
-              <a
-                href="<%= baseUrl %>&page=<%= i %>"
-                class="page-link <%= currentPage === i ? 'active' : '' %>"
-              >
-                <%= i %>
-              </a>
+              <a href="<%= baseUrl %>&page=<%= i %>" class="page-link <%= currentPage === i ? 'active' : '' %>"><%= i %></a>
             <% } %>
 
             <% if (totalPages > 7 && currentPage + 3 < totalPages) { %>
@@ -248,11 +259,8 @@
               <a href="<%= baseUrl %>&page=<%= totalPages %>" class="page-link"><%= totalPages %></a>
             <% } %>
 
-            <!-- Next -->
             <% if (currentPage < totalPages) { %>
-              <a href="<%= baseUrl %>&page=<%= currentPage + 1 %>" class="page-link">
-                Next &rarr;
-              </a>
+              <a href="<%= baseUrl %>&page=<%= currentPage + 1 %>" class="page-link">Next &rarr;</a>
             <% } else { %>
               <span class="page-link disabled">Next &rarr;</span>
             <% } %>
@@ -263,28 +271,20 @@
           <a href="/dashboard" class="auth-btn btn-ghost w-auto">Back to Dashboard</a>
         </footer>
 
-        <!-- FLOATING BULK ACTIONS BAR -->
+        <!-- FLOATING BULK ACTIONS BAR (Same as before) -->
         <div id="bulkActionBar" class="bulk-bar">
-          <div class="bulk-info">
-            <span id="selectedCount">0</span> items selected
-          </div>
-
+          <div class="bulk-info"><span id="selectedCount">0</span> selected</div>
           <div class="bulk-actions">
-            
-            <!-- 1. Bulk Category Form (With Move Button) -->
+            <!-- 1. Bulk Category Form -->
             <form action="/products/bulk/category" method="POST" class="inline-form" id="bulkCatForm">
               <input type="hidden" name="_csrf" value="<%= csrfToken %>">
               <input type="hidden" name="ids" class="bulk-ids">
-              
               <select name="category_id" required class="bulk-select">
-                <option value="" disabled selected>Move to Category...</option>
-                <% if (typeof categories !== 'undefined' && categories.length > 0) { %>
-                  <% categories.forEach(cat => { %>
+                <option value="" disabled selected>Category...</option>
+                <% if (categories) { categories.forEach(cat => { %>
                     <option value="<%= cat.id %>"><%= cat.name %></option>
-                  <% }) %>
-                <% } %>
+                <% }) } %>
               </select>
-              
               <button type="submit" class="bulk-btn">Move</button>
             </form>
 
@@ -292,19 +292,16 @@
             <form action="/products/bulk/quantity" method="POST" class="inline-form" id="bulkQtyForm">
               <input type="hidden" name="_csrf" value="<%= csrfToken %>">
               <input type="hidden" name="ids" class="bulk-ids">
-              <input type="number" name="quantity" placeholder="Set Qty" class="bulk-input" min="0" required>
-              <button type="submit" class="bulk-btn">Update Qty</button>
+              <input type="number" name="quantity" placeholder="Qty" class="bulk-input" min="0" required>
+              <button type="submit" class="bulk-btn">Set</button>
             </form>
 
             <!-- 3. Bulk Delete Form -->
             <form action="/products/bulk/delete" method="POST" class="inline-form" id="bulkDeleteForm">
               <input type="hidden" name="_csrf" value="<%= csrfToken %>">
               <input type="hidden" name="ids" class="bulk-ids">
-              <button type="submit" class="bulk-btn-danger">
-                Delete Selected
-              </button>
+              <button type="submit" class="bulk-btn-danger">Delete</button>
             </form>
-
           </div>
         </div>
 

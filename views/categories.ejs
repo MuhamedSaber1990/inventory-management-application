@@ -2,7 +2,8 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <title>Categories</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Categories - Inventory Management</title>
     <link rel="stylesheet" href="/css/app.css" />
   </head>
   <body class="auth-body">
@@ -19,7 +20,92 @@
 
         <div class="dashboard-section">
           <% if (categories && categories.length > 0) { %>
-          <div class="products-container">
+
+          <!-- MOBILE CARD VIEW (Hidden on desktop) -->
+          <div class="mobile-category-view">
+            <% categories.forEach((category, index) => { %>
+            <div class="mobile-category-card">
+              <div
+                style="
+                  display: flex;
+                  align-items: center;
+                  gap: 10px;
+                  margin-bottom: 8px;
+                "
+              >
+                <span class="id-pill"><%= index + 1 %></span>
+                <h3 class="mobile-category-name" style="margin: 0; flex: 1">
+                  <%= category.name %>
+                </h3>
+              </div>
+
+              <p class="mobile-category-description">
+                <%= category.description || 'No description' %>
+              </p>
+
+              <div class="mobile-category-meta">
+                <div class="mobile-category-meta-item">
+                  <span class="mobile-category-meta-label">Products</span>
+                  <span class="mobile-category-meta-value"
+                    ><%= category.product_count %></span
+                  >
+                </div>
+                <div class="mobile-category-meta-item">
+                  <span class="mobile-category-meta-label">Created</span>
+                  <span
+                    class="mobile-category-meta-value"
+                    style="font-size: 0.8rem"
+                  >
+                    <%= new Date(category.created_at).toLocaleDateString() %>
+                  </span>
+                </div>
+              </div>
+
+              <div class="mobile-category-actions">
+                <% if (category.name !== 'Uncategorized') { %>
+                <a
+                  href="/categories/edit/<%= category.id %>"
+                  class="table-btn"
+                  style="flex: 1"
+                >
+                  Edit
+                </a>
+                <form
+                  action="/categories/delete/<%= category.id %>"
+                  method="POST"
+                  class="delete-form"
+                  data-name="<%= category.name %>"
+                  style="flex: 1"
+                >
+                  <input type="hidden" name="_csrf" value="<%= csrfToken %>" />
+                  <button
+                    type="submit"
+                    class="table-btn table-btn-danger"
+                    style="width: 100%"
+                  >
+                    Delete
+                  </button>
+                </form>
+                <% } else { %>
+                <span
+                  class="table-btn"
+                  style="
+                    opacity: 0.3;
+                    cursor: not-allowed;
+                    flex: 1;
+                    text-align: center;
+                  "
+                >
+                  Protected
+                </span>
+                <% } %>
+              </div>
+            </div>
+            <% }) %>
+          </div>
+
+          <!-- DESKTOP TABLE VIEW (Hidden on mobile) -->
+          <div class="products-container desktop-table-view">
             <table class="products-table">
               <thead>
                 <tr>
