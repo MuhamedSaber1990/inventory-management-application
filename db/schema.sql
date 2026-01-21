@@ -101,3 +101,17 @@ CREATE TRIGGER update_products_updated_at
 BEFORE UPDATE ON products
 FOR EACH ROW
 EXECUTE FUNCTION update_updated_at_column();
+
+-- ============================================
+-- 5. Activity_LOGS TABLE
+-- ============================================
+CREATE TABLE activity_logs (
+    id SERIAL PRIMARY KEY,
+    user_id INTEGER REFERENCES users(id) ON DELETE SET NULL,
+    action_type VARCHAR(50) NOT NULL, -- e.g., 'CREATE', 'DELETE', 'UPDATE'
+    description TEXT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- 2. Index for sorting timeline
+CREATE INDEX idx_logs_created_at ON activity_logs(created_at DESC);

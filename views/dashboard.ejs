@@ -15,15 +15,13 @@
           <p>Inventory Overview</p>
         </header>
 
-        <!-- 1. STATS GRID -->
+        <!-- 1. KPI STATS GRID -->
         <div class="stats-grid">
-          <!-- Card 1: Total Products -->
           <div class="stat-card">
             <span class="stat-label">Total Products</span>
             <span class="stat-value"><%= stats.total_items %></span>
           </div>
 
-          <!-- Card 2: Total Value -->
           <div class="stat-card money">
             <span class="stat-label">Total Value</span>
             <span class="stat-value">
@@ -32,7 +30,6 @@
             </span>
           </div>
 
-          <!-- Card 3: Low Stock Alert -->
           <div
             class="stat-card <%= stats.low_stock_count > 0 ? 'alert' : '' %>"
           >
@@ -41,81 +38,164 @@
           </div>
         </div>
 
-        <!-- 2. MAIN ACTIONS -->
-        <div class="dashboard-actions">
-          <a href="/products" class="auth-btn">Manage All Products</a>
-          <a href="/categories" class="auth-btn">Manage Categories</a>
+        <!-- 2. MAIN DASHBOARD GRID -->
+        <div class="dashboard-grid">
+          <!-- LEFT COLUMN (Charts & Actions) -->
+          <div class="dashboard-col">
+            <!-- Trend Line Chart -->
+            <div class="dash-card">
+              <div class="dash-card-header">
+                <h3>📈 Inventory Growth (12 Months)</h3>
+              </div>
+              <div class="chart-wrapper">
+                <canvas id="lineChart"></canvas>
+              </div>
+            </div>
+
+            <div class="split-row">
+              <!-- Category Pie Chart -->
+              <div class="dash-card">
+                <div class="dash-card-header">
+                  <h3>💰 Value by Category</h3>
+                </div>
+                <div class="chart-wrapper-small">
+                  <canvas id="pieChart"></canvas>
+                </div>
+              </div>
+
+              <!-- Quick Actions -->
+              <div class="dash-card">
+                <div class="dash-card-header">
+                  <h3>⚡ Quick Actions</h3>
+                </div>
+                <div class="actions-grid">
+                  <!-- 1. View All Products (Added) -->
+                  <a href="/products" class="action-card">
+                    <span class="action-icon">📦</span>
+                    <span class="action-label">All Products</span>
+                  </a>
+
+                  <!-- 2. Add Item -->
+                  <a href="/products/add" class="action-card">
+                    <span class="action-icon">+</span>
+                    <span class="action-label">Add Item</span>
+                  </a>
+
+                  <!-- 3. Categories -->
+                  <a href="/categories" class="action-card">
+                    <span class="action-icon">🏷️</span>
+                    <span class="action-label">Categories</span>
+                  </a>
+
+                  <!-- 4. Export CSV -->
+                  <a href="/data/export/products/csv" class="action-card">
+                    <span class="action-icon">📄</span>
+                    <span class="action-label">Export CSV</span>
+                  </a>
+
+                  <!-- 5. Import -->
+                  <a href="/data/import" class="action-card">
+                    <span class="action-icon">⬇</span>
+                    <span class="action-label">Import</span>
+                  </a>
+
+                  <!-- 6. Backup -->
+                  <a href="/data/backup/database" class="action-card">
+                    <span class="action-icon">💾</span>
+                    <span class="action-label">Backup DB</span>
+                  </a>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- RIGHT COLUMN (Feed & Alerts) -->
+          <div class="dashboard-col">
+            <!-- Activity Feed -->
+            <div class="dash-card">
+              <div class="dash-card-header">
+                <h3>🕒 Recent Activity</h3>
+              </div>
+
+              <ul class="activity-list">
+                <% if (typeof logs !== 'undefined' && logs.length > 0) { %> <%
+                logs.forEach(log => { %>
+                <li class="feed-item">
+                  <div class="feed-icon">
+                    <%= log.action_type === 'DELETE' ? '🗑️' : (log.action_type
+                    === 'UPDATE' ? '✏️' : '✨') %>
+                  </div>
+                  <div class="feed-content">
+                    <span class="feed-user"
+                      ><%= log.user_name || 'System' %></span
+                    >
+                    <span class="feed-desc"><%= log.description %></span>
+                    <span class="feed-time">
+                      <%= new Date(log.created_at).toLocaleDateString() %> <%=
+                      new Date(log.created_at).toLocaleTimeString([], {hour:
+                      '2-digit', minute:'2-digit'}) %>
+                    </span>
+                  </div>
+                </li>
+                <% }) %> <% } else { %>
+                <li class="empty-state">No recent activity recorded.</li>
+                <% } %>
+              </ul>
+            </div>
+
+            <!-- Low Stock Alerts -->
+            <% if (lowStockProducts.length > 0) { %>
+            <div class="dash-card">
+              <div class="section-header">
+                <h2>⚠️ Needs Attention</h2>
+              </div>
+              <table class="mini-table">
+                <tbody>
+                  <% lowStockProducts.forEach(product => { %>
+                  <tr>
+                    <td><%= product.name %></td>
+                    <td style="text-align: right">
+                      <span class="stock-badge"
+                        ><%= product.quantity %> left</span
+                      >
+                    </td>
+                    <td style="text-align: right; width: 60px">
+                      <a
+                        href="/products/edit/<%= product.id %>"
+                        class="auth-link-small"
+                        >Refill</a
+                      >
+                    </td>
+                  </tr>
+                  <% }) %>
+                </tbody>
+              </table>
+            </div>
+            <% } %>
+          </div>
+        </div>
+
+        <!-- Footer -->
+        <footer class="auth-footer footer-actions">
           <form action="/logout" method="POST" style="display: inline">
             <input type="hidden" name="_csrf" value="<%= csrfToken %>" />
-            <button
-              type="submit"
-              class="auth-btn"
-              style="
-                background: transparent;
-                border: 1px solid var(--border-subtle);
-              "
-            >
+            <button type="submit" class="auth-btn btn-ghost w-auto">
               Logout
             </button>
           </form>
-        </div>
-
-        <!-- 3. DATA MANAGEMENT SECTION -->
-        <div class="dashboard-section">
-          <div class="section-header">
-            <h2>Data Management</h2>
-          </div>
-
-          <div class="stats-grid">
-            <!-- Export CSV -->
-            <a href="/data/export/products/csv" class="stat-card">
-              <span class="stat-label">Export CSV</span>
-              <span class="stat-value">Text File</span>
-            </a>
-
-            <!-- Import CSV -->
-            <a href="/data/import" class="stat-card">
-              <span class="stat-label">Import</span>
-              <span class="stat-value">Upload</span>
-            </a>
-
-            <!-- Backup DB -->
-            <a href="/data/backup/database" class="stat-card alert">
-              <span class="stat-label">Backup</span>
-              <span class="stat-value">SQL Dump</span>
-            </a>
-          </div>
-        </div>
-
-        <!-- 4. LOW STOCK ALERTS SECTION -->
-        <% if (lowStockProducts.length > 0) { %>
-        <div class="dashboard-section">
-          <div class="section-header">
-            <h2>⚠️ Low Stock Alerts</h2>
-          </div>
-
-          <table class="mini-table">
-            <tbody>
-              <% lowStockProducts.forEach(product => { %>
-              <tr>
-                <td><%= product.name %></td>
-                <td style="text-align: right">
-                  <span class="stock-badge"><%= product.quantity %> left</span>
-                </td>
-                <td style="text-align: right; width: 80px">
-                  <a
-                    href="/products/edit/<%= product.id %>"
-                    class="auth-link-small"
-                    >Refill</a
-                  >
-                </td>
-              </tr>
-              <% }) %>
-            </tbody>
-          </table>
-        </div>
-        <% } %>
+        </footer>
       </div>
     </div>
+
+    <!-- 1. Pass Data securely to JS -->
+    <script id="chart-data" type="application/json">
+      <%- JSON.stringify(typeof charts !== 'undefined' ? charts : {}) %>
+    </script>
+
+    <!-- 2. Load Chart.js Library -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <!-- 3. Load Custom Dashboard Logic -->
+    <script src="/js/dashboard.js"></script>
   </body>
 </html>

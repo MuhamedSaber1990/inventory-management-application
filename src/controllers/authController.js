@@ -17,8 +17,12 @@ import {
   getDashboardStats,
   getLowStockProducts,
 } from "../models/productModel.js";
-
 import dotenv from "dotenv";
+import {
+  getRecentActivity,
+  getCategoryStockStats,
+  getMonthlyTrends,
+} from "../models/analyticsModel.js";
 
 dotenv.config();
 
@@ -142,25 +146,27 @@ export async function dashboard(req, res) {
   const csrfToken = generateCsrfToken(req, res);
 
   try {
-    const [stats, lowStockProducts] = await Promise.all([
-      getDashboardStats(),
-      getLowStockProducts(),
-    ]);
+    // Fetch ALL dashboard data in parallel
+    const [stats, lowStockProducts, logs, pieData, lineData] =
+      await Promise.all([
+        getDashboardStats(),
+        getLowStockProducts(),
+        getRecentActivity(5),
+        getCategoryStockStats(),
+        getMonthlyTrends(),
+      ]);
 
     res.render("dashboard.ejs", {
       user: req.user,
       stats,
       lowStockProducts,
+      logs,
+      charts: { pieData, lineData },
       csrfToken,
     });
   } catch (error) {
     console.error("Dashboard Error:", error);
-    res.render("dashboard.ejs", {
-      user: req.user,
-      stats: { total_items: 0, total_value: 0, low_stock_count: 0 },
-      lowStockProducts: [],
-      csrfToken,
-    });
+    res.status(500).send("Error loading dashboard");
   }
 }
 
