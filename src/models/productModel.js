@@ -15,7 +15,7 @@ export async function getProductsByID(id) {
     FROM products p
     LEFT JOIN categories c ON p.category_id = c.id
     WHERE p.id = $1`,
-    [id]
+    [id],
   );
   return products.rows[0];
 }
@@ -24,7 +24,7 @@ export async function getProductsByID(id) {
 export async function countProducts(
   search = "",
   categoryId = "",
-  filters = {}
+  filters = {},
 ) {
   const { minPrice, maxPrice, stockStatus, fromDate, toDate } = filters;
 
@@ -35,7 +35,7 @@ export async function countProducts(
     maxPrice,
     stockStatus,
     fromDate,
-    toDate
+    toDate,
   );
 
   const query = `
@@ -55,7 +55,7 @@ export async function getProducts(
   offset,
   search = "",
   categoryId = "",
-  filters = {}
+  filters = {},
 ) {
   const {
     minPrice,
@@ -74,7 +74,7 @@ export async function getProducts(
     maxPrice,
     stockStatus,
     fromDate,
-    toDate
+    toDate,
   );
   let { clause, params, idx } = filterData;
 
@@ -106,7 +106,7 @@ export async function getProducts(
 export async function addProducts(name, price, qty, description, categoryId) {
   const insertProducts = await db.query(
     "INSERT INTO products (name, price, quantity, description, bar_code, sku, category_id) VALUES ($1,$2,$3,$4,$5,$6,$7) RETURNING *",
-    [name, price, qty, description, randomBarCode(), SKU(name), categoryId]
+    [name, price, qty, description, randomBarCode(), SKU(name), categoryId],
   );
   return insertProducts.rows[0];
 }
@@ -118,7 +118,7 @@ export async function updateProducts(
   price,
   quantity,
   description,
-  categoryId
+  categoryId,
 ) {
   const updateProduct = await db.query(
     `UPDATE products
@@ -130,7 +130,7 @@ export async function updateProducts(
          updated_at = NOW()
      WHERE id = $6
      RETURNING *`,
-    [name, price, quantity, description, categoryId, id]
+    [name, price, quantity, description, categoryId, id],
   );
   return updateProduct.rows[0];
 }
@@ -217,7 +217,7 @@ export async function importProductsBulk(products) {
             product.quantity,
             product.description,
             product.category_id,
-          ]
+          ],
         );
         successCount++;
       } catch (error) {
@@ -246,7 +246,7 @@ export async function bulkDeleteProducts(ids) {
 export async function bulkUpdateQuantity(ids, quantity) {
   await db.query(
     "UPDATE products SET quantity = $1, updated_at = NOW() WHERE id = ANY($2::int[])",
-    [quantity, ids]
+    [quantity, ids],
   );
 }
 
@@ -254,10 +254,13 @@ export async function bulkUpdateQuantity(ids, quantity) {
 export async function bulkUpdateCategory(ids, categoryId) {
   await db.query(
     "UPDATE products SET category_id = $1, updated_at = NOW() WHERE id = ANY($2::int[])",
-    [categoryId, ids]
+    [categoryId, ids],
   );
 }
 
+// ==========================================
+// HELPER: Dynamic Filter Builder
+// ==========================================
 function buildFilterQuery(
   search,
   categoryId,
@@ -265,7 +268,7 @@ function buildFilterQuery(
   maxPrice,
   stockStatus,
   fromDate,
-  toDate
+  toDate,
 ) {
   let clause = " WHERE 1=1";
   const params = [];
@@ -278,9 +281,19 @@ function buildFilterQuery(
     idx++;
   }
 
-  // 2. Category
+  // 2. Category (SMART FIX: Handle ID or Name)
   if (categoryId) {
-    clause += ` AND p.category_id = $${idx}`;
+    // Check if it's a valid ID (Number)
+    const isId = !isNaN(parseInt(categoryId));
+
+    if (isId) {
+      // It's an ID (e.g. "5" from Dropdown)
+      clause += ` AND p.category_id = $${idx}`;
+    } else {
+      // It's a Name (e.g. "Furniture" from AI)
+      // Filter on the Joined Table 'c' (categories)
+      clause += ` AND c.name ILIKE $${idx}`;
+    }
     params.push(categoryId);
     idx++;
   }
@@ -302,7 +315,6 @@ function buildFilterQuery(
     if (stockStatus === "out") {
       clause += ` AND p.quantity = 0`;
     } else if (stockStatus === "low") {
-      // Assuming 'low' means <= min_quantity (usually 10) but > 0
       clause += ` AND p.quantity > 0 AND p.quantity <= p.min_quantity`;
     } else if (stockStatus === "in") {
       clause += ` AND p.quantity > p.min_quantity`;
@@ -316,7 +328,6 @@ function buildFilterQuery(
     idx++;
   }
   if (toDate) {
-    // Add 1 day to include the end date fully
     clause += ` AND p.created_at <= $${idx}::date + interval '1 day'`;
     params.push(toDate);
     idx++;

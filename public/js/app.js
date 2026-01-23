@@ -1,5 +1,5 @@
 document.addEventListener("DOMContentLoaded", () => {
-  // ============ 1. SELECTORS ============
+  // ============ 1. GLOBAL SELECTORS ============
   const selectAllCheckbox = document.getElementById("selectAll");
   const bulkBar = document.getElementById("bulkActionBar");
   const selectedCountSpan = document.getElementById("selectedCount");
@@ -10,17 +10,21 @@ document.addEventListener("DOMContentLoaded", () => {
   const limitForm = document.getElementById("limitForm");
   const categorySelect = document.getElementById("category"); // For Add Product
   const filterCategorySelect = document.querySelector(
-    ".category-filter select"
+    ".category-filter select",
   ); // For Products Page
   const filterForm = document.getElementById("categoryForm");
   const searchInput = document.getElementById("searchInput");
 
-  // Elements to update via AJAX
+  // AI Elements
+  const aiSearchBtn = document.getElementById("aiSearchBtn");
+  const aiDescBtn = document.getElementById("aiBtn");
+
+  // DOM Elements to update via AJAX
   const tableBody = document.querySelector(".products-table tbody");
   const mobileView = document.querySelector(".mobile-products-view");
   const paginationContainer = document.querySelector(".pagination-wrapper");
 
-  // ============ 2. HELPER FUNCTIONS (The missing logic) ============
+  // ============ 2. HELPER FUNCTIONS ============
 
   // Update bulk action bar visibility, count, and hidden inputs
   function updateBulkBar() {
@@ -72,7 +76,7 @@ document.addEventListener("DOMContentLoaded", () => {
   function handleDeleteSubmit(e) {
     const name = this.dataset.name || "this item";
     const ok = confirm(
-      `Are you sure you want to delete "${name}"? This action cannot be undone.`
+      `Are you sure you want to delete "${name}"? This action cannot be undone.`,
     );
 
     if (!ok) {
@@ -138,7 +142,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Filter Panel Toggle
   const filterToggleBtn = document.querySelector(
-    '[onclick*="advancedFilters"]'
+    '[onclick*="advancedFilters"]',
   );
   const filterPanel = document.getElementById("advancedFilters");
 
@@ -169,7 +173,7 @@ document.addEventListener("DOMContentLoaded", () => {
       const catName = select.options[select.selectedIndex].text;
 
       const ok = confirm(
-        `Are you sure you want to move ${count} products to "${catName}"?`
+        `Are you sure you want to move ${count} products to "${catName}"?`,
       );
       if (!ok) e.preventDefault();
     });
@@ -189,7 +193,7 @@ document.addEventListener("DOMContentLoaded", () => {
       const newQty = qtyInput.value;
 
       const ok = confirm(
-        `Are you sure you want to set the quantity to "${newQty}" for ${count} products?`
+        `Are you sure you want to set the quantity to "${newQty}" for ${count} products?`,
       );
       if (!ok) e.preventDefault();
     });
@@ -206,7 +210,7 @@ document.addEventListener("DOMContentLoaded", () => {
       }
 
       const ok = confirm(
-        `⚠️ WARNING: Are you sure you want to DELETE ${count} products?\n\nThis action cannot be undone.`
+        `⚠️ WARNING: Are you sure you want to DELETE ${count} products?\n\nThis action cannot be undone.`,
       );
       if (!ok) e.preventDefault();
     });
@@ -234,7 +238,7 @@ document.addEventListener("DOMContentLoaded", () => {
         params.append("category", filterCategorySelect.value);
 
       // Add Advanced Filters if present
-      const advForm = document.querySelector(".filter-grid"); // Inside the panel
+      const advForm = document.querySelector(".filter-grid");
       if (advForm) {
         const formData = new FormData(advForm);
         for (const [key, value] of formData.entries()) {
@@ -266,7 +270,7 @@ document.addEventListener("DOMContentLoaded", () => {
         if (newTableBody) {
           tableBody.innerHTML = newTableBody.innerHTML;
         } else if (newNoProducts) {
-          tableBody.innerHTML = ""; // Or show the "No products" message row
+          tableBody.innerHTML = "";
         }
         tableBody.style.opacity = "1";
       }
@@ -293,13 +297,11 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   // ============ 6. AI DESCRIPTION GENERATOR ============
-  const aiBtn = document.getElementById("aiBtn");
-  const nameInput = document.getElementById("name");
-  const descInput = document.getElementById("description");
-  // Reuse categorySelect from top if on Add Product page
+  if (aiDescBtn) {
+    const nameInput = document.getElementById("name");
+    const descInput = document.getElementById("description");
 
-  if (aiBtn) {
-    aiBtn.addEventListener("click", async () => {
+    aiDescBtn.addEventListener("click", async () => {
       const productName = nameInput.value;
 
       if (!productName) {
@@ -314,9 +316,9 @@ document.addEventListener("DOMContentLoaded", () => {
           categorySelect.options[categorySelect.selectedIndex].text;
       }
 
-      const originalText = aiBtn.innerHTML;
-      aiBtn.disabled = true;
-      aiBtn.innerHTML = `Generating...`; // Simplified loading text
+      const originalText = aiDescBtn.innerHTML;
+      aiDescBtn.disabled = true;
+      aiDescBtn.innerHTML = `Generating...`;
 
       try {
         const response = await fetch("/api/generate-description", {
@@ -338,8 +340,58 @@ document.addEventListener("DOMContentLoaded", () => {
         console.error(error);
         alert("Failed to connect to AI service.");
       } finally {
-        aiBtn.disabled = false;
-        aiBtn.innerHTML = originalText;
+        aiDescBtn.disabled = false;
+        aiDescBtn.innerHTML = originalText;
+      }
+    });
+  }
+
+  // ============ 7. AI SMART SEARCH (NOW INSIDE SCOPE) ============
+  if (aiSearchBtn && searchInput) {
+    aiSearchBtn.addEventListener("click", async () => {
+      const query = searchInput.value.trim();
+
+      if (!query) {
+        alert(
+          "Please type a request first.\nExample: 'Show me low stock electronics under $50'",
+        );
+        return;
+      }
+
+      // 1. Loading State
+      const originalText = aiSearchBtn.innerHTML;
+      aiSearchBtn.disabled = true;
+      aiSearchBtn.innerHTML = `Running...`;
+      document.body.style.cursor = "wait";
+
+      try {
+        // 2. Ask Backend
+        const response = await fetch("/api/search-natural", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ query }),
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+          // 3. Build Query String
+          const params = new URLSearchParams(data.filters);
+          if (limitSelect) params.append("limit", limitSelect.value);
+
+          // 4. Redirect
+          window.location.href = `/products?${params.toString()}`;
+        } else {
+          console.error("AI Error:", data.error);
+          alert("Could not understand query. Try being more specific.");
+        }
+      } catch (error) {
+        console.error(error);
+        alert("AI Search failed.");
+      } finally {
+        aiSearchBtn.disabled = false;
+        aiSearchBtn.innerHTML = originalText;
+        document.body.style.cursor = "default";
       }
     });
   }

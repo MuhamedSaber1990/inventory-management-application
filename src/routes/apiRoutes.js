@@ -10,4 +10,7 @@ router.use(requireAuth);
 // Generate Description Endpoint
 router.post("/generate-description", aiController.generateProductDescription);
 
+// New: Natural Language Search
+router.post("/search-natural", aiController.naturalLanguageSearch);
+
 export default router;

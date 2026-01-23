@@ -1,5 +1,6 @@
 import OpenAI from "openai";
 import dotenv from "dotenv";
+import { getCategories } from "../models/productModel.js";
 
 dotenv.config();
 
@@ -42,5 +43,58 @@ export async function generateProductDescription(req, res) {
   } catch (error) {
     console.error("AI Generation Error:", error);
     return res.status(500).json({ error: "Failed to generate description" });
+  }
+}
+
+export async function naturalLanguageSearch(req, res) {
+  const { query } = req.body;
+
+  if (!query) return res.status(400).json({ error: "Query required" });
+
+  try {
+    // 1. Get current categories to help AI match them
+    const categories = await getCategories();
+    const catList = categories.map((c) => `${c.name} (ID: ${c.id})`).join(", ");
+
+    // 2. The Prompt
+    const prompt = `
+      You are a search assistant for an inventory system.
+      Translate the user's natural language query into a JSON object of filter parameters.
+      
+      Available Filter Keys: 
+      - search (string): for product names/SKUs
+      - category (string): MUST be the exact Category Name from the list below
+      - minPrice (number)
+      - maxPrice (number)
+      - stockStatus (string): 'in', 'low', 'out'
+      - sortBy (string): 'price', 'quantity', 'created_at', 'name'
+      - sortOrder (string): 'ASC', 'DESC'
+
+      Available Categories: [${catList}]
+
+      User Query: "${query}"
+
+      Rules:
+      1. Interpret "cheap" as sort price ASC.
+      2. Interpret "expensive" as sort price DESC.
+      3. Interpret "newest" as sort created_at DESC.
+      4. Interpret "low stock" as stockStatus: 'low'.
+      5. Only return the JSON object. No other text.
+    `;
+
+    // 3. Call AI
+    const completion = await openai.chat.completions.create({
+      messages: [{ role: "user", content: prompt }],
+      model: "llama-3.3-70b-versatile", // Smart model required for logic
+      temperature: 0, // Strict logic
+      response_format: { type: "json_object" }, // Force JSON return
+    });
+
+    const filters = JSON.parse(completion.choices[0].message.content);
+
+    return res.json({ success: true, filters });
+  } catch (error) {
+    console.error("AI Search Error:", error);
+    return res.status(500).json({ error: "AI failed" });
   }
 }
