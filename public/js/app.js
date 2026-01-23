@@ -8,8 +8,11 @@ document.addEventListener("DOMContentLoaded", () => {
   // Filter & Search Elements
   const limitSelect = document.getElementById("limit");
   const limitForm = document.getElementById("limitForm");
-  const filterCategorySelect = document.getElementById("filterCategory");
-  const filterForm = document.getElementById("filterForm");
+  const categorySelect = document.getElementById("category"); // For Add Product
+  const filterCategorySelect = document.querySelector(
+    ".category-filter select"
+  ); // For Products Page
+  const filterForm = document.getElementById("categoryForm");
   const searchInput = document.getElementById("searchInput");
 
   // Elements to update via AJAX
@@ -17,73 +20,226 @@ document.addEventListener("DOMContentLoaded", () => {
   const mobileView = document.querySelector(".mobile-products-view");
   const paginationContainer = document.querySelector(".pagination-wrapper");
 
-  // ============ 2. LISTENERS ============
+  // ============ 2. HELPER FUNCTIONS (The missing logic) ============
+
+  // Update bulk action bar visibility, count, and hidden inputs
+  function updateBulkBar() {
+    const checkedBoxes = document.querySelectorAll(".item-checkbox:checked");
+    const count = checkedBoxes.length;
+
+    // 1. Update Text
+    if (selectedCountSpan) {
+      selectedCountSpan.textContent = count;
+    }
+
+    // 2. Show/Hide Bar & Fill Data
+    if (bulkBar) {
+      if (count > 0) {
+        bulkBar.classList.add("show");
+
+        // Update all hidden ID inputs with comma-separated string
+        const ids = Array.from(checkedBoxes)
+          .map((cb) => cb.value)
+          .join(",");
+
+        bulkIdsInputs.forEach((input) => {
+          input.value = ids;
+        });
+      } else {
+        bulkBar.classList.remove("show");
+      }
+    }
+
+    // 3. Update "Select All" Indeterminate State
+    if (selectAllCheckbox) {
+      const allCheckboxes = document.querySelectorAll(".item-checkbox");
+      if (allCheckboxes.length > 0) {
+        const allChecked = Array.from(allCheckboxes).every((cb) => cb.checked);
+        selectAllCheckbox.checked = allChecked;
+        selectAllCheckbox.indeterminate = count > 0 && !allChecked;
+      } else {
+        selectAllCheckbox.checked = false;
+        selectAllCheckbox.indeterminate = false;
+      }
+    }
+
+    // 4. Disable buttons if 0 selected (Safety)
+    const bulkBtns = document.querySelectorAll(".bulk-btn, .bulk-btn-danger");
+    bulkBtns.forEach((btn) => (btn.disabled = count === 0));
+  }
+
+  // Handle Individual Delete Confirmation
+  function handleDeleteSubmit(e) {
+    const name = this.dataset.name || "this item";
+    const ok = confirm(
+      `Are you sure you want to delete "${name}"? This action cannot be undone.`
+    );
+
+    if (!ok) {
+      e.preventDefault();
+      return;
+    }
+
+    // Add loading state
+    const deleteBtn = this.querySelector('button[type="submit"]');
+    if (deleteBtn) {
+      deleteBtn.disabled = true;
+      deleteBtn.textContent = "Deleting...";
+      deleteBtn.style.opacity = "0.6";
+    }
+  }
+
+  // Attach listeners to dynamic elements (Checkboxes & Delete Forms)
+  function attachDynamicListeners() {
+    // Checkboxes
+    document.querySelectorAll(".item-checkbox").forEach((checkbox) => {
+      checkbox.removeEventListener("change", updateBulkBar);
+      checkbox.addEventListener("change", updateBulkBar);
+    });
+
+    // Delete Forms
+    document.querySelectorAll(".delete-form").forEach((form) => {
+      form.removeEventListener("submit", handleDeleteSubmit);
+      form.addEventListener("submit", handleDeleteSubmit);
+    });
+  }
+
+  // ============ 3. INITIALIZATION & STATIC LISTENERS ============
+
+  // Run on load
+  attachDynamicListeners();
+  updateBulkBar();
 
   // Auto-Submit Limit
   if (limitSelect && limitForm) {
     limitSelect.addEventListener("change", () => limitForm.submit());
   }
 
-  // Auto-Submit Category
+  // Auto-Submit Category Filter
   if (filterCategorySelect && filterForm) {
     filterCategorySelect.addEventListener("change", () => {
+      // Reset to page 1 when filtering
       const pageInput = filterForm.querySelector('input[name="page"]');
       if (pageInput) pageInput.value = 1;
       filterForm.submit();
     });
   }
 
-  // Filter Panel Toggle (MOVED OUTSIDE selectAllCheckbox block)
+  // "Select All" Logic
+  if (selectAllCheckbox) {
+    selectAllCheckbox.addEventListener("change", function () {
+      const itemCheckboxes = document.querySelectorAll(".item-checkbox");
+      itemCheckboxes.forEach((checkbox) => {
+        checkbox.checked = this.checked;
+      });
+      updateBulkBar();
+    });
+  }
+
+  // Filter Panel Toggle
   const filterToggleBtn = document.querySelector(
     '[onclick*="advancedFilters"]'
   );
   const filterPanel = document.getElementById("advancedFilters");
 
   if (filterToggleBtn && filterPanel) {
-    // Remove inline onclick and use proper event listener
-    filterToggleBtn.removeAttribute("onclick");
-
+    filterToggleBtn.removeAttribute("onclick"); // Clean inline JS
     filterToggleBtn.addEventListener("click", (e) => {
       e.preventDefault();
       filterPanel.classList.toggle("show");
-
-      // Optional: Update button text/icon to indicate state
-      const isOpen = filterPanel.classList.contains("show");
-      console.log("Filter panel toggled:", isOpen);
     });
   }
 
-  // ============ 3. LIVE SEARCH LOGIC ============
+  // ============ 4. BULK CONFIRMATION LOGIC ============
+
+  const getSelectedCount = () =>
+    document.querySelectorAll(".item-checkbox:checked").length;
+
+  // Confirm Category Move
+  const bulkCatForm = document.getElementById("bulkCatForm");
+  if (bulkCatForm) {
+    bulkCatForm.addEventListener("submit", (e) => {
+      const count = getSelectedCount();
+      if (count === 0) {
+        e.preventDefault();
+        return;
+      }
+
+      const select = bulkCatForm.querySelector("select");
+      const catName = select.options[select.selectedIndex].text;
+
+      const ok = confirm(
+        `Are you sure you want to move ${count} products to "${catName}"?`
+      );
+      if (!ok) e.preventDefault();
+    });
+  }
+
+  // Confirm Quantity Update
+  const bulkQtyForm = document.getElementById("bulkQtyForm");
+  if (bulkQtyForm) {
+    bulkQtyForm.addEventListener("submit", (e) => {
+      const count = getSelectedCount();
+      if (count === 0) {
+        e.preventDefault();
+        return;
+      }
+
+      const qtyInput = bulkQtyForm.querySelector("input[name='quantity']");
+      const newQty = qtyInput.value;
+
+      const ok = confirm(
+        `Are you sure you want to set the quantity to "${newQty}" for ${count} products?`
+      );
+      if (!ok) e.preventDefault();
+    });
+  }
+
+  // Confirm Bulk Delete
+  const bulkDeleteForm = document.getElementById("bulkDeleteForm");
+  if (bulkDeleteForm) {
+    bulkDeleteForm.addEventListener("submit", (e) => {
+      const count = getSelectedCount();
+      if (count === 0) {
+        e.preventDefault();
+        return;
+      }
+
+      const ok = confirm(
+        `⚠️ WARNING: Are you sure you want to DELETE ${count} products?\n\nThis action cannot be undone.`
+      );
+      if (!ok) e.preventDefault();
+    });
+  }
+
+  // ============ 5. LIVE SEARCH LOGIC ============
   let searchTimeout = null;
 
   if (searchInput) {
     searchInput.addEventListener("input", function (e) {
       const searchTerm = e.target.value;
       if (searchTimeout) clearTimeout(searchTimeout);
-
-      // Debounce: Wait 400ms after typing stops
       searchTimeout = setTimeout(() => performLiveSearch(searchTerm), 400);
     });
   }
 
   async function performLiveSearch(term) {
     try {
-      // 1. Base Params
       const params = new URLSearchParams();
       params.append("search", term);
       params.append("page", "1");
 
-      // 2. Add Limit
-      if (limitSelect) {
-        params.append("limit", limitSelect.value);
-      }
+      if (limitSelect) params.append("limit", limitSelect.value);
+      if (filterCategorySelect)
+        params.append("category", filterCategorySelect.value);
 
-      // 3. Add Advanced Filters
-      if (filterForm) {
-        const formData = new FormData(filterForm);
+      // Add Advanced Filters if present
+      const advForm = document.querySelector(".filter-grid"); // Inside the panel
+      if (advForm) {
+        const formData = new FormData(advForm);
         for (const [key, value] of formData.entries()) {
           if (
-            !["search", "limit", "page"].includes(key) &&
+            !["search", "limit", "category"].includes(key) &&
             value.trim() !== ""
           ) {
             params.append(key, value);
@@ -91,11 +247,9 @@ document.addEventListener("DOMContentLoaded", () => {
         }
       }
 
-      // 4. Fetch
       const url = `/products?${params.toString()}`;
 
       if (tableBody) tableBody.style.opacity = "0.5";
-      if (mobileView) mobileView.style.opacity = "0.5";
 
       const response = await fetch(url);
       if (!response.ok) throw new Error("Search failed");
@@ -104,40 +258,26 @@ document.addEventListener("DOMContentLoaded", () => {
       const parser = new DOMParser();
       const doc = parser.parseFromString(htmlText, "text/html");
 
-      // 5. Swap DOM Elements
       const newTableBody = doc.querySelector(".products-table tbody");
-      const newMobileView = doc.querySelector(".mobile-products-view");
       const newPagination = doc.querySelector(".pagination-wrapper");
       const newNoProducts = doc.querySelector(".no-products");
 
-      // Handle Table View
       if (tableBody) {
         if (newTableBody) {
           tableBody.innerHTML = newTableBody.innerHTML;
         } else if (newNoProducts) {
-          tableBody.innerHTML = "";
+          tableBody.innerHTML = ""; // Or show the "No products" message row
         }
         tableBody.style.opacity = "1";
       }
 
-      // Handle Mobile View
-      if (mobileView) {
-        if (newMobileView) {
-          mobileView.innerHTML = newMobileView.innerHTML;
-        } else {
-          mobileView.innerHTML = "";
-        }
-        mobileView.style.opacity = "1";
-      }
-
-      // Handle Pagination
       if (paginationContainer) {
         paginationContainer.innerHTML = newPagination
           ? newPagination.innerHTML
           : "";
       }
 
-      // 6. Re-Initialize Dynamic Listeners
+      // CRITICAL: Re-attach listeners because we replaced the HTML
       attachDynamicListeners();
 
       // Reset Bulk Bar
@@ -149,48 +289,58 @@ document.addEventListener("DOMContentLoaded", () => {
     } catch (error) {
       console.error("Live search error:", error);
       if (tableBody) tableBody.style.opacity = "1";
-      if (mobileView) mobileView.style.opacity = "1";
     }
   }
 
-  // ============ 4. BULK & HELPER FUNCTIONS ============
+  // ============ 6. AI DESCRIPTION GENERATOR ============
+  const aiBtn = document.getElementById("aiBtn");
+  const nameInput = document.getElementById("name");
+  const descInput = document.getElementById("description");
+  // Reuse categorySelect from top if on Add Product page
 
-  function attachDynamicListeners() {
-    // Re-attach individual checkbox listeners
-    document.querySelectorAll(".item-checkbox").forEach((checkbox) => {
-      checkbox.removeEventListener("change", updateBulkBar);
-      checkbox.addEventListener("change", updateBulkBar);
-    });
+  if (aiBtn) {
+    aiBtn.addEventListener("click", async () => {
+      const productName = nameInput.value;
 
-    // Re-attach individual delete confirmations
-    document.querySelectorAll(".delete-form").forEach((form) => {
-      form.removeEventListener("submit", handleDeleteSubmit);
-      form.addEventListener("submit", handleDeleteSubmit);
-    });
-  }
+      if (!productName) {
+        alert("Please enter a Product Name first!");
+        nameInput.focus();
+        return;
+      }
 
-  function updateBulkBar() {
-    // TODO: Add your updateBulkBar logic here
-  }
+      let categoryName = "General";
+      if (categorySelect && categorySelect.selectedIndex >= 0) {
+        categoryName =
+          categorySelect.options[categorySelect.selectedIndex].text;
+      }
 
-  function handleDeleteSubmit(e) {
-    // TODO: Add your delete submit logic here
-  }
+      const originalText = aiBtn.innerHTML;
+      aiBtn.disabled = true;
+      aiBtn.innerHTML = `Generating...`; // Simplified loading text
 
-  // Initialize
-  attachDynamicListeners();
-  updateBulkBar();
+      try {
+        const response = await fetch("/api/generate-description", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ productName, category: categoryName }),
+        });
 
-  // Desktop Select All Logic
-  if (selectAllCheckbox) {
-    selectAllCheckbox.addEventListener("change", function () {
-      const itemCheckboxes = document.querySelectorAll(
-        ".desktop-table-view .item-checkbox"
-      );
-      itemCheckboxes.forEach((checkbox) => {
-        checkbox.checked = this.checked;
-      });
-      updateBulkBar();
+        const data = await response.json();
+
+        if (data.success) {
+          descInput.value = data.description;
+          descInput.style.borderColor = "#6366f1";
+          setTimeout(() => (descInput.style.borderColor = ""), 1000);
+        } else {
+          alert("AI Error: " + data.error);
+        }
+      } catch (error) {
+        console.error(error);
+        alert("Failed to connect to AI service.");
+      } finally {
+        aiBtn.disabled = false;
+        aiBtn.innerHTML = originalText;
+      }
     });
   }
 });

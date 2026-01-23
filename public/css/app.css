@@ -671,7 +671,7 @@ select.filter-input option {
 } /* ID */
 .products-table th:nth-child(3),
 .products-table td:nth-child(3) {
-  width: 18%;
+  width: 20%;
   text-align: left;
   font-weight: 500;
   color: #fff;
@@ -683,7 +683,7 @@ select.filter-input option {
 } /* Category */
 .products-table th:nth-child(5),
 .products-table td:nth-child(5) {
-  width: 10%;
+  width: 8%;
   text-align: left;
   font-family: monospace;
   font-size: 0.9rem;

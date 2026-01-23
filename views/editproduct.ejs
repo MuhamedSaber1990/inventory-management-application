@@ -1,23 +1,31 @@
 <!DOCTYPE html>
 <html lang="en">
   <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Edit Product - Inventory Management</title>
-  <link rel="stylesheet" href="/css/app.css" />
-  <link rel="stylesheet" href="/css/form.css" />
-</head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Edit Product - Inventory Management</title>
+    <link rel="stylesheet" href="/css/app.css" />
+    <link rel="stylesheet" href="/css/form.css" />
+  </head>
   <body class="auth-body">
-    <div class="auth-wrapper" style="max-width: 600px;">
+    <!-- Reusing import-wrapper for consistent max-width -->
+    <div class="auth-wrapper import-wrapper">
       <div class="auth-card">
         <header class="auth-header">
           <h1>Edit Product</h1>
-          <p>Update product information</p>
+          <p>Update details for <strong><%= product.name %></strong></p>
         </header>
+
+        <% if (typeof errorMessage !== 'undefined' && errorMessage) { %>
+          <div class="auth-alert auth-alert-error">
+            ⚠️ <%= errorMessage %>
+          </div>
+        <% } %>
 
         <form action="/products/edit/<%= product.id %>" method="POST" class="auth-form">
           <input type="hidden" name="_csrf" value="<%= csrfToken %>" />
 
+          <!-- Name -->
           <div class="form-group">
             <label for="name" class="form-label">Product Name *</label>
             <input
@@ -30,23 +38,26 @@
             />
           </div>
 
+          <!-- Category -->
           <div class="form-group">
-            <label for="category_id" class="form-label">Category</label>
-            <select id="category_id" name="category_id" class="form-input">
-              <option value="">-- Select Category (Optional) --</option>
-              <% if (categories && categories.length > 0) { %>
-                <% categories.forEach(category => { %>
+            <label for="category" class="form-label">Category</label>
+            <!-- Changed name="category_id" to "category" to match Controller logic -->
+            <select id="category" name="category" class="form-input">
+              <option value="" disabled>-- Select Category --</option>
+              <% if (typeof categories !== 'undefined' && categories.length > 0) { %>
+                <% categories.forEach(cat => { %>
                   <option 
-                    value="<%= category.id %>" 
-                    <%= product.category_id == category.id ? 'selected' : '' %>
+                    value="<%= cat.id %>" 
+                    <%= product.category_id === cat.id ? 'selected' : '' %>
                   >
-                    <%= category.name %>
+                    <%= cat.name %>
                   </option>
                 <% }) %>
               <% } %>
             </select>
           </div>
 
+          <!-- Price & Quantity -->
           <div class="form-row">
             <div class="form-group">
               <label for="price" class="form-label">Price (€) *</label>
@@ -56,7 +67,7 @@
                 name="price"
                 class="form-input"
                 step="0.01"
-                min="1"
+                min="0"
                 max="1000000"
                 value="<%= product.price %>"
                 required
@@ -78,23 +89,39 @@
             </div>
           </div>
 
+          <!-- Description with AI Button -->
           <div class="form-group">
-            <label for="description" class="form-label">Description *</label>
+            <div class="label-row">
+              <label for="description" class="form-label">Description *</label>
+              
+              <!-- AI BUTTON -->
+              <!-- Uses 'aiBtn' ID so app.js attaches the listener automatically -->
+              <button type="button" id="aiBtn" class="btn-ai">
+                <span>✨</span> Generate with AI
+              </button>
+            </div>
+
             <textarea
               id="description"
               name="description"
               class="form-input"
               rows="4"
+              style="resize: vertical;"
               required
             ><%= product.description %></textarea>
           </div>
 
+          <!-- Actions -->
           <div class="form-actions">
             <button type="submit" class="auth-btn">Update Product</button>
-            <a href="/products" class="btn-secondary">Cancel</a>
+            <!-- Smart Cancel: Returns to Dashboard or Products list -->
+            <a href="javascript:history.back()" class="btn-secondary">Cancel</a>
           </div>
         </form>
       </div>
     </div>
+
+    <!-- REQUIRED: Load app.js for AI functionality -->
+    <script src="/js/app.js"></script>
   </body>
 </html>

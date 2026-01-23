@@ -119,3 +119,38 @@ select.form-input option {
     width: 100%;
   }
 }
+
+/* ============ AI & LABEL UTILITIES ============ */
+
+/* Wrapper to align Label and Button */
+.label-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 6px;
+}
+
+/* Override default label margin inside the wrapper */
+.label-row .form-label {
+  margin-bottom: 0;
+}
+
+/* Small AI Button Style */
+.btn-ai {
+  background: rgba(99, 102, 241, 0.1);
+  border: 1px solid rgba(99, 102, 241, 0.3);
+  color: var(--accent);
+  padding: 4px 10px;
+  font-size: 0.75rem;
+  border-radius: 6px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  transition: all 0.2s;
+}
+
+.btn-ai:hover {
+  background: var(--accent);
+  color: white;
+}

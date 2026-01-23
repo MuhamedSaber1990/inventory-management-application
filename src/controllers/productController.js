@@ -82,10 +82,10 @@ export async function showAddProductForm(req, res) {
 
 // Create new product
 export async function addProductHandler(req, res) {
-  const { name, price, quantity, description, category_id } = req.body;
+  const { name, price, quantity, description, category } = req.body;
 
   try {
-    await addProducts(name, price, quantity, description, category_id || null);
+    await addProducts(name, price, quantity, description, category || null);
     res.redirect("/products");
   } catch (error) {
     console.error("Error creating product:", error);
@@ -129,7 +129,7 @@ export async function updateProductsFrom(req, res) {
 
 // Update product
 export async function updateProductHandler(req, res) {
-  const { name, price, quantity, description, category_id } = req.body;
+  const { name, price, quantity, description, category } = req.body;
   const { id } = req.params;
 
   try {
@@ -139,7 +139,7 @@ export async function updateProductHandler(req, res) {
       price,
       quantity,
       description,
-      category_id || null
+      category || null
     );
     res.redirect("/products");
   } catch (error) {
