@@ -29,7 +29,7 @@ app.use(
         scriptSrc: ["'self'", "https://cdn.jsdelivr.net"],
       },
     },
-  })
+  }),
 );
 app.use(routes);
 

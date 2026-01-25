@@ -8,6 +8,7 @@ import {
 } from "../middleware/productValidators.js";
 import * as productController from "../controllers/productController.js";
 import { requireAuth } from "../middleware/auth.js";
+import { requireAdmin } from "../middleware/roles.js";
 
 const router = Router();
 
@@ -22,7 +23,7 @@ router.post(
   doubleCsrfProtection,
   productRules,
   validateAddProducts,
-  productController.addProductHandler
+  productController.addProductHandler,
 );
 
 router.get("/edit/:id", productController.updateProductsFrom);
@@ -32,28 +33,33 @@ router.post(
   doubleCsrfProtection,
   productRules,
   validateUpdateProducts,
-  productController.updateProductHandler
+  productController.updateProductHandler,
 );
+
 router.post(
   "/delete/:id",
   doubleCsrfProtection,
-  productController.deleteProductHandler
+  requireAdmin,
+  productController.deleteProductHandler,
 );
 
 // BULK OPERATIONS
 router.post(
   "/bulk/delete",
   doubleCsrfProtection,
-  productController.handleBulkDelete
+  requireAdmin,
+  productController.handleBulkDelete,
 );
+
 router.post(
   "/bulk/quantity",
   doubleCsrfProtection,
-  productController.handleBulkQuantity
+  productController.handleBulkQuantity,
 );
+
 router.post(
   "/bulk/category",
   doubleCsrfProtection,
-  productController.handleBulkCategory
+  productController.handleBulkCategory,
 );
 export default router;

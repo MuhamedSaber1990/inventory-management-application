@@ -2,6 +2,7 @@ import { Router } from "express";
 import multer from "multer";
 import { doubleCsrfProtection } from "../config/csrf.js";
 import { requireAuth } from "../middleware/auth.js";
+import { requireAdmin } from "../middleware/roles.js";
 import * as exportImportController from "../controllers/exportImportController.js";
 
 // Configure Multer (Memory Storage)
@@ -33,15 +34,20 @@ router.get("/import", exportImportController.showImportPage);
 // Import products from CSV
 router.post(
   "/import/products",
+  requireAdmin,
   upload.single("csvFile"),
   doubleCsrfProtection,
-  exportImportController.importProductsCSV
+  exportImportController.importProductsCSV,
 );
 
 // Download CSV template
 router.get("/template/csv", exportImportController.downloadCSVTemplate);
 
 // Database backup
-router.get("/backup/database", exportImportController.backupDatabase);
+router.get(
+  "/backup/database",
+  requireAdmin,
+  exportImportController.backupDatabase,
+);
 
 export default router;

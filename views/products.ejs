@@ -181,7 +181,9 @@
                     <th>Qty</th>
                     <th>Description</th>
                     <th>Update</th>
-                    <th>Delete</th>
+                     <% if (user.role === 'admin') { %>
+                      <th>Delete</th>
+                     <% } %>
                   </tr>
                 </thead>
                 <tbody id="productTableBody">
@@ -204,14 +206,17 @@
                       <td class="table-actions text-center">
                         <a href="/products/edit/<%= product.id %>" class="table-btn">Update</a>
                       </td>
+                      <% if (user.role === 'admin') { %>
                       <td class="table-actions text-center">
                         <form action="/products/delete/<%= product.id %>" method="POST" class="delete-form" data-name="<%= product.name %>">
                           <input type="hidden" name="_csrf" value="<%= csrfToken %>" />
                           <button type="submit" class="table-btn table-btn-danger">Delete</button>
                         </form>
                       </td>
-                    </tr>
-                  <% }) %>
+                    <% } %>
+
+                  </tr>
+                <% }) %>
                 </tbody>
               </table>
             </div>
@@ -303,11 +308,13 @@
             </form>
 
             <!-- 3. Bulk Delete Form -->
+            <% if (user.role === 'admin') { %>
             <form action="/products/bulk/delete" method="POST" class="inline-form" id="bulkDeleteForm">
               <input type="hidden" name="_csrf" value="<%= csrfToken %>">
               <input type="hidden" name="ids" class="bulk-ids">
-              <button type="submit" class="bulk-btn-danger">Delete</button>
+              <button type="submit" class="bulk-btn-danger">Delete Selected</button>
             </form>
+          <% } %>
           </div>
         </div>
 

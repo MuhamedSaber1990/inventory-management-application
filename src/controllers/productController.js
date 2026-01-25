@@ -55,6 +55,7 @@ export async function showProducts(req, res) {
       currentLimit: limit,
       search,
       filters,
+      user: req.user,
     });
   } catch (error) {
     console.error(error);
@@ -139,7 +140,7 @@ export async function updateProductHandler(req, res) {
       price,
       quantity,
       description,
-      category || null
+      category || null,
     );
     res.redirect("/products");
   } catch (error) {

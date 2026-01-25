@@ -7,6 +7,7 @@ import {
   validateEditCategory,
 } from "../middleware/categoryValidators.js";
 import * as categoryController from "../controllers/categoryController.js";
+import { requireAdmin } from "../middleware/roles.js";
 
 const router = Router();
 
@@ -21,9 +22,10 @@ router.get("/add", categoryController.showAddCategoryForm);
 router.post(
   "/new",
   doubleCsrfProtection,
+  requireAdmin,
   categoryRules,
   validateAddCategory,
-  categoryController.addCategoryHandler
+  categoryController.addCategoryHandler,
 );
 
 // Edit category
@@ -31,16 +33,18 @@ router.get("/edit/:id", categoryController.showEditCategoryForm);
 router.post(
   "/edit/:id",
   doubleCsrfProtection,
+  requireAdmin,
   categoryRules,
   validateEditCategory,
-  categoryController.editCategoryHandler
+  categoryController.editCategoryHandler,
 );
 
 // Delete category
 router.post(
   "/delete/:id",
   doubleCsrfProtection,
-  categoryController.deleteCategoryHandler
+  requireAdmin,
+  categoryController.deleteCategoryHandler,
 );
 
 export default router;

@@ -73,6 +73,7 @@ export async function handleLogin(req, res) {
       id: user.id,
       email: user.email,
       name: user.name,
+      role: user.role,
       last_login: previousLastLogin,
     };
     const expiresIn = rememberMe ? "1d" : "1h";
