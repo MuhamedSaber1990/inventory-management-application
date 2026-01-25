@@ -8,6 +8,7 @@ CREATE TABLE IF NOT EXISTS users (
   name VARCHAR(100) NOT NULL,
   email VARCHAR(255) UNIQUE NOT NULL,
   password_hash VARCHAR(255) NOT NULL,
+  role VARCHAR(20) NOT NULL DEFAULT 'user',
   email_verified BOOLEAN DEFAULT FALSE,
   verification_token VARCHAR(255),
   verification_token_expiry TIMESTAMP,
@@ -50,6 +51,7 @@ CREATE TABLE IF NOT EXISTS products (
   bar_code VARCHAR(50) UNIQUE,
   price NUMERIC(10, 2) NOT NULL CHECK (price >= 0),
   quantity INTEGER NOT NULL DEFAULT 0 CHECK (quantity >= 0),
+  min_quantity INTEGER NOT NULL DEFAULT 10 CHECK (min_quantity >= 0), 
   description TEXT NOT NULL,
   category_id INTEGER REFERENCES categories(id) ON DELETE SET NULL,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -113,5 +115,5 @@ CREATE TABLE activity_logs (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
--- 2. Index for sorting timeline
+-- Index for sorting timeline
 CREATE INDEX idx_logs_created_at ON activity_logs(created_at DESC);
