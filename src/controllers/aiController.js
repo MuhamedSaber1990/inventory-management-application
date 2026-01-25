@@ -98,3 +98,81 @@ export async function naturalLanguageSearch(req, res) {
     return res.status(500).json({ error: "AI failed" });
   }
 }
+
+export async function generateDashboardInsights(req, res) {
+  const { stats, categoryData, trendData } = req.body;
+
+  try {
+    // 1. Construct a summary prompt
+    const prompt = `
+      You are an inventory manager assistant. Analyze this data:
+      - Total Products: ${stats.total_items}
+      - Total Value: €${stats.total_value}
+      - Low Stock Items: ${stats.low_stock_count}
+      - Top Categories: ${JSON.stringify(categoryData.slice(0, 3))}
+      - Recent Growth Trend: ${JSON.stringify(trendData)}
+
+      Write a short, professional "Executive Summary" (maximum 3 bullet points).
+      Focus on financial health, stock risks, and growth. 
+      Format the output as HTML <li> elements. Do not include <ul> tags.
+      Use emojis for each bullet point.
+    `;
+
+    // 2. Call AI
+    const completion = await openai.chat.completions.create({
+      messages: [{ role: "user", content: prompt }],
+      model: "llama-3.3-70b-versatile",
+      temperature: 0.5,
+    });
+
+    const insights = completion.choices[0].message.content.trim();
+
+    return res.json({ success: true, insights });
+  } catch (error) {
+    console.error("AI Insights Error:", error);
+    return res.status(500).json({ error: "Failed to generate insights" });
+  }
+}
+
+export async function suggestCategory(req, res) {
+  const { productName } = req.body;
+
+  if (!productName) {
+    return res.status(400).json({ error: "Product name is required" });
+  }
+
+  try {
+    // 1. Get existing categories from DB
+    const categories = await getCategories();
+
+    // Format list for AI: "1: Electronics, 2: Furniture..."
+    const catList = categories.map((c) => `${c.id}: ${c.name}`).join("\n");
+
+    const prompt = `
+      I have a product named "${productName}".
+      Which of the following categories does it belong to?
+      
+      Categories List:
+      ${catList}
+      
+      Rules:
+      1. Return ONLY the ID of the best matching category.
+      2. Return JSON format: { "id": number }
+      3. If no category fits well, pick the closest one or "General/Uncategorized" if available.
+    `;
+
+    const completion = await openai.chat.completions.create({
+      messages: [{ role: "user", content: prompt }],
+      model: "llama-3.3-70b-versatile", // Smart model needed for classification
+      temperature: 0, // Strict logic, no creativity
+      response_format: { type: "json_object" },
+    });
+
+    const result = JSON.parse(completion.choices[0].message.content);
+
+    return res.json({ success: true, categoryId: result.id });
+  } catch (error) {
+    console.error("AI Category Suggestion Error:", error);
+    return res.status(500).json({ error: "Failed to suggest category" });
+  }
+}

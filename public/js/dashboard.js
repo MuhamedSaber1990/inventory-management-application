@@ -1,11 +1,11 @@
 document.addEventListener("DOMContentLoaded", () => {
-  // Check if Chart.js is loaded
+  // ============ 1. CHART DATA SETUP ============
+
   if (typeof Chart === "undefined") {
     console.error("Chart.js library not loaded!");
     return;
   }
 
-  // Get the data from the hidden script tag
   const chartDataScript = document.getElementById("chart-data");
 
   if (!chartDataScript) {
@@ -13,7 +13,6 @@ document.addEventListener("DOMContentLoaded", () => {
     return;
   }
 
-  // Parse the JSON
   let pieData = [];
   let lineData = [];
 
@@ -26,6 +25,8 @@ document.addEventListener("DOMContentLoaded", () => {
     displayErrorMessage("Failed to parse chart data");
     return;
   }
+
+  // ============ 2. RENDER CHARTS ============
 
   // Render Line Chart
   const lineCanvas = document.getElementById("lineChart");
@@ -74,10 +75,7 @@ document.addEventListener("DOMContentLoaded", () => {
               y: {
                 beginAtZero: true,
                 grid: { color: "rgba(255, 255, 255, 0.05)" },
-                ticks: {
-                  color: "#9ca3af",
-                  stepSize: 1,
-                },
+                ticks: { color: "#9ca3af", stepSize: 1 },
               },
               x: {
                 grid: { display: false },
@@ -133,9 +131,7 @@ document.addEventListener("DOMContentLoaded", () => {
                   color: "#9ca3af",
                   boxWidth: 12,
                   padding: 15,
-                  font: {
-                    size: 11,
-                  },
+                  font: { size: 11 },
                 },
               },
               tooltip: {
@@ -163,25 +159,75 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
-  // Helper function to display empty state
+  // ============ 3. AI INSIGHTS GENERATOR (NEW) ============
+
+  const aiResult = document.getElementById("aiResult");
+  const aiLoading = document.getElementById("aiLoading");
+
+  // Only run if the AI section exists in the HTML
+  if (aiResult && aiLoading) {
+    // 1. Gather Stats from DOM (To avoid passing complex objects from backend)
+    const totalItems = document
+      .querySelector(".stat-card:nth-child(1) .stat-value")
+      ?.innerText.trim();
+    const totalValue = document
+      .querySelector(".stat-card.money .stat-value")
+      ?.innerText.trim();
+    const lowStock = document
+      .querySelector(".stat-card.alert .stat-value")
+      ?.innerText.trim();
+
+    const payload = {
+      stats: {
+        total_items: totalItems || "0",
+        total_value: totalValue || "0",
+        low_stock_count: lowStock || "0",
+      },
+      categoryData: pieData, // Use the data we parsed earlier
+      trendData: lineData, // Use the data we parsed earlier
+    };
+
+    // 2. Fetch AI Insights
+    fetch("/api/dashboard-insights", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.success) {
+          aiLoading.style.display = "none";
+          aiResult.style.display = "block";
+
+          // 3. Safe Parsing (Convert HTML string to DOM nodes)
+          const parser = new DOMParser();
+          const doc = parser.parseFromString(data.insights, "text/html");
+          const listItems = doc.body.childNodes;
+
+          // Clear and Append
+          aiResult.textContent = "";
+          Array.from(listItems).forEach((node) => {
+            aiResult.appendChild(node);
+          });
+        } else {
+          aiLoading.innerHTML = `<span style="color:#f87171">Unable to generate insights at this time.</span>`;
+        }
+      })
+      .catch((err) => {
+        console.error("AI Insights Failed:", err);
+        aiLoading.style.display = "none";
+      });
+  }
+
+  // ============ 4. HELPERS ============
+
   function displayEmptyState(canvas, message) {
     const parent = canvas.parentElement;
-
-    // Hide canvas
     canvas.style.display = "none";
-
-    // Create message element
     const messageDiv = document.createElement("div");
     messageDiv.style.cssText = `
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      height: 200px;
-      color: #9ca3af;
-      font-size: 0.9rem;
-      text-align: center;
-      padding: 20px;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      height: 200px; color: #9ca3af; font-size: 0.9rem; text-align: center; padding: 20px;
     `;
     messageDiv.innerHTML = `
       <div style="font-size: 2rem; opacity: 0.3; margin-bottom: 12px;">📊</div>

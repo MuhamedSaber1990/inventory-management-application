@@ -4,13 +4,10 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Add Product - Inventory Management</title>
-    <!-- Load Core Styles -->
     <link rel="stylesheet" href="/css/app.css" />
-    <!-- Load Form Specific Styles -->
     <link rel="stylesheet" href="/css/form.css" />
   </head>
   <body class="auth-body">
-    <!-- Reusing import-wrapper for correct width (from app.css) -->
     <div class="auth-wrapper import-wrapper">
       <div class="auth-card">
         <header class="auth-header">
@@ -28,24 +25,29 @@
           <input type="hidden" name="_csrf" value="<%= csrfToken %>" />
 
           <!-- Name -->
-          <div class="form-group">
-            <label for="name" class="form-label">Product Name *</label>
+          <div class="auth-field">
+            <label for="name">Product Name *</label>
             <input
               type="text"
               id="name"
               name="name"
-              class="form-input"
               placeholder="e.g., Wireless Mouse"
               value="<%= typeof old !== 'undefined' ? old.name : '' %>"
+              class="filter-input"
               required
             />
           </div>
 
           <!-- Category -->
-          <div class="form-group">
-            <label for="category" class="form-label">Category</label>
-            <!-- Note: name="category" matches the controller -->
-            <select id="category" name="category" class="form-input">
+          <div class="auth-field">
+            <div class="label-row">
+              <label for="category" class="mb-0">Category</label>
+              <button type="button" id="aiCatBtn" class="btn-ai">
+                <span>✨</span> Suggest
+              </button>
+            </div>
+            
+            <select id="category" name="category" class="filter-select w-full">
               <option value="" disabled selected>-- Select Category --</option>
               <% if (typeof categories !== 'undefined' && categories.length > 0) { %>
                 <% categories.forEach(cat => { %>
@@ -60,46 +62,44 @@
             </select>
           </div>
 
-          <!-- Price & Quantity (Grid Layout via form.css) -->
+          <!-- Price & Quantity -->
           <div class="form-row">
-            <div class="form-group">
-              <label for="price" class="form-label">Price (€) *</label>
+            <div class="auth-field">
+              <label for="price">Price (€) *</label>
               <input
                 type="number"
                 id="price"
                 name="price"
-                class="form-input"
                 step="0.01"
                 min="0"
                 max="1000000"
                 placeholder="29.99"
                 value="<%= typeof old !== 'undefined' ? old.price : '' %>"
+                class="filter-input"
                 required
               />
             </div>
 
-            <div class="form-group">
-              <label for="quantity" class="form-label">Quantity *</label>
+            <div class="auth-field">
+              <label for="quantity">Quantity *</label>
               <input
                 type="number"
                 id="quantity"
                 name="quantity"
-                class="form-input"
                 min="0"
                 max="10000"
                 placeholder="100"
                 value="<%= typeof old !== 'undefined' ? old.quantity : '' %>"
+                class="filter-input"
                 required
               />
             </div>
           </div>
 
-          <!-- Description with AI Button -->
-          <div class="form-group">
+          <!-- Description -->
+          <div class="auth-field">
             <div class="label-row">
-              <label for="description" class="form-label">Description *</label>
-              
-              <!-- AI Trigger Button -->
+              <label for="description" class="mb-0">Description *</label>
               <button type="button" id="aiBtn" class="btn-ai">
                 <span>✨</span> Generate with AI
               </button>
@@ -108,8 +108,8 @@
             <textarea
               id="description"
               name="description"
-              class="form-input"
               rows="4"
+              class="filter-input resize-y"
               placeholder="Detailed product description..."
               required
             ><%= typeof old !== 'undefined' ? old.description : '' %></textarea>
@@ -117,16 +117,13 @@
 
           <!-- Actions -->
           <div class="form-actions">
-            <button type="submit" class="auth-btn">Create Product</button>
-            
-            <!-- Smart Cancel: Returns to previous page -->
-            <a href="javascript:history.back()" class="btn-secondary">Cancel</a>
+            <button type="submit" class="auth-btn w-auto">Create Product</button>
+            <a href="javascript:history.back()" class="auth-btn btn-ghost w-auto">Cancel</a>
           </div>
         </form>
       </div>
     </div>
     
-    <!-- Load JS for AI Logic -->
     <script src="/js/app.js"></script>
   </body>
 </html>

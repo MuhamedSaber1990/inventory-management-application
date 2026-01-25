@@ -8,7 +8,6 @@
     <link rel="stylesheet" href="/css/form.css" />
   </head>
   <body class="auth-body">
-    <!-- Reusing import-wrapper for consistent max-width -->
     <div class="auth-wrapper import-wrapper">
       <div class="auth-card">
         <header class="auth-header">
@@ -26,23 +25,22 @@
           <input type="hidden" name="_csrf" value="<%= csrfToken %>" />
 
           <!-- Name -->
-          <div class="form-group">
-            <label for="name" class="form-label">Product Name *</label>
+          <div class="auth-field">
+            <label for="name">Product Name *</label>
             <input
               type="text"
               id="name"
               name="name"
-              class="form-input"
+              class="filter-input"
               value="<%= product.name %>"
               required
             />
           </div>
 
           <!-- Category -->
-          <div class="form-group">
-            <label for="category" class="form-label">Category</label>
-            <!-- Changed name="category_id" to "category" to match Controller logic -->
-            <select id="category" name="category" class="form-input">
+          <div class="auth-field">
+            <label for="category">Category</label>
+            <select id="category" name="category" class="filter-select w-full">
               <option value="" disabled>-- Select Category --</option>
               <% if (typeof categories !== 'undefined' && categories.length > 0) { %>
                 <% categories.forEach(cat => { %>
@@ -59,43 +57,40 @@
 
           <!-- Price & Quantity -->
           <div class="form-row">
-            <div class="form-group">
-              <label for="price" class="form-label">Price (€) *</label>
+            <div class="auth-field">
+              <label for="price">Price (€) *</label>
               <input
                 type="number"
                 id="price"
                 name="price"
-                class="form-input"
                 step="0.01"
                 min="0"
                 max="1000000"
+                class="filter-input"
                 value="<%= product.price %>"
                 required
               />
             </div>
 
-            <div class="form-group">
-              <label for="quantity" class="form-label">Quantity *</label>
+            <div class="auth-field">
+              <label for="quantity">Quantity *</label>
               <input
                 type="number"
                 id="quantity"
                 name="quantity"
-                class="form-input"
                 min="0"
                 max="10000"
+                class="filter-input"
                 value="<%= product.quantity %>"
                 required
               />
             </div>
           </div>
 
-          <!-- Description with AI Button -->
-          <div class="form-group">
+          <!-- Description -->
+          <div class="auth-field">
             <div class="label-row">
-              <label for="description" class="form-label">Description *</label>
-              
-              <!-- AI BUTTON -->
-              <!-- Uses 'aiBtn' ID so app.js attaches the listener automatically -->
+              <label for="description" class="mb-0">Description *</label>
               <button type="button" id="aiBtn" class="btn-ai">
                 <span>✨</span> Generate with AI
               </button>
@@ -104,24 +99,21 @@
             <textarea
               id="description"
               name="description"
-              class="form-input"
+              class="filter-input resize-y"
               rows="4"
-              style="resize: vertical;"
               required
             ><%= product.description %></textarea>
           </div>
 
           <!-- Actions -->
           <div class="form-actions">
-            <button type="submit" class="auth-btn">Update Product</button>
-            <!-- Smart Cancel: Returns to Dashboard or Products list -->
-            <a href="javascript:history.back()" class="btn-secondary">Cancel</a>
+            <button type="submit" class="auth-btn w-auto">Update Product</button>
+            <a href="javascript:history.back()" class="auth-btn btn-ghost w-auto">Cancel</a>
           </div>
         </form>
       </div>
     </div>
-
-    <!-- REQUIRED: Load app.js for AI functionality -->
+    
     <script src="/js/app.js"></script>
   </body>
 </html>

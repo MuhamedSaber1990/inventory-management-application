@@ -1,38 +1,46 @@
 /* ============ FORM STYLES (Add/Edit Pages) ============ */
 
+/* Main Form Container */
 .auth-form {
   margin-top: 20px;
 }
 
-.form-group {
+/* Field Wrapper */
+.form-group,
+.auth-field {
   margin-bottom: 18px;
+  width: 100%;
 }
 
-.form-label {
+/* Labels */
+.form-label,
+.auth-field label {
   display: block;
-  margin-bottom: 6px;
+  margin-bottom: 8px;
   font-size: 0.9rem;
-  font-weight: 600;
-  color: var(--text-main);
+  font-weight: 500;
+  color: var(--text-muted); /* Uses variable from app.css */
 }
 
-.form-input {
+/* Inputs (Text, Number, Email) */
+.form-input,
+.filter-input {
   width: 100%;
   padding: 12px 14px;
   border-radius: 10px;
   border: 1px solid rgba(148, 163, 184, 0.35);
-  background: rgba(255, 255, 255, 0.06);
+  background: rgba(255, 255, 255, 0.05);
   color: var(--text-main);
   font-size: 0.95rem;
   font-family: inherit;
   outline: none;
-  transition: border-color var(--transition), background var(--transition),
-    box-shadow var(--transition);
+  transition: all 0.2s ease-out;
 }
 
-.form-input:focus {
+.form-input:focus,
+.filter-input:focus {
   border-color: var(--accent);
-  background: rgba(255, 255, 255, 0.09);
+  background: rgba(255, 255, 255, 0.08);
   box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.15);
 }
 
@@ -40,52 +48,76 @@
   color: rgba(156, 163, 175, 0.5);
 }
 
-/* Textarea specific */
-textarea.form-input {
+/* Textareas */
+textarea.form-input,
+textarea.filter-input {
   resize: vertical;
-  min-height: 80px;
+  min-height: 100px;
+  line-height: 1.5;
 }
 
-/* Select dropdown */
-select.form-input {
+/* Select Dropdowns */
+select.form-input,
+select.filter-select {
   appearance: none;
   -webkit-appearance: none;
-  -moz-appearance: none;
   cursor: pointer;
   padding-right: 40px;
-  background-image: linear-gradient(
-      45deg,
-      transparent 50%,
-      var(--text-muted) 50%
-    ),
+  background-image:
+    linear-gradient(45deg, transparent 50%, var(--text-muted) 50%),
     linear-gradient(135deg, var(--text-muted) 50%, transparent 50%);
-  background-position: calc(100% - 18px) 50%, calc(100% - 12px) 50%;
-  background-size: 6px 6px, 6px 6px;
+  background-position:
+    calc(100% - 18px) 50%,
+    calc(100% - 12px) 50%;
+  background-size:
+    6px 6px,
+    6px 6px;
   background-repeat: no-repeat;
 }
 
-select.form-input option {
-  background: #0b1022;
+select.form-input option,
+select.filter-select option {
+  background: #0b1022; /* Dark background for options */
   color: var(--text-main);
 }
 
-/* Form row (side-by-side fields) */
+/* ============ LAYOUT UTILITIES ============ */
+
+/* Grid Row (Side-by-side inputs like Price & Qty) */
 .form-row {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 15px;
 }
 
-/* Form actions (buttons) */
+/* Label Row (Aligns Label + AI Button) */
+.label-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+/* Override standard label margin when inside a label-row */
+.label-row label,
+.label-row .form-label {
+  margin-bottom: 0;
+}
+
+/* ============ BUTTONS & ACTIONS ============ */
+
+/* Form Actions Container */
 .form-actions {
   display: flex;
   gap: 12px;
   margin-top: 24px;
   align-items: center;
+  justify-content: center;
 }
 
+/* Cancel Button */
 .btn-secondary {
-  padding: 11px 18px;
+  padding: 11px 24px;
   border-radius: 999px;
   border: 1px solid rgba(148, 163, 184, 0.4);
   background: transparent;
@@ -96,61 +128,56 @@ select.form-input option {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  transition: background var(--transition), border-color var(--transition);
+  transition: all 0.2s;
+  cursor: pointer;
 }
 
 .btn-secondary:hover {
   background: rgba(255, 255, 255, 0.08);
-  border-color: rgba(148, 163, 184, 0.6);
+  border-color: var(--text-main);
 }
 
-/* Mobile responsiveness */
-@media (max-width: 720px) {
-  .form-row {
-    grid-template-columns: 1fr;
-  }
-
-  .form-actions {
-    flex-direction: column;
-  }
-
-  .form-actions .auth-btn,
-  .form-actions .btn-secondary {
-    width: 100%;
-  }
-}
-
-/* ============ AI & LABEL UTILITIES ============ */
-
-/* Wrapper to align Label and Button */
-.label-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 6px;
-}
-
-/* Override default label margin inside the wrapper */
-.label-row .form-label {
-  margin-bottom: 0;
-}
-
-/* Small AI Button Style */
+/* AI "Magic" Button */
 .btn-ai {
   background: rgba(99, 102, 241, 0.1);
   border: 1px solid rgba(99, 102, 241, 0.3);
   color: var(--accent);
-  padding: 4px 10px;
+  padding: 5px 12px;
   font-size: 0.75rem;
+  font-weight: 600;
   border-radius: 6px;
   cursor: pointer;
   display: flex;
   align-items: center;
-  gap: 5px;
+  gap: 6px;
   transition: all 0.2s;
 }
 
 .btn-ai:hover {
   background: var(--accent);
   color: white;
+  border-color: var(--accent);
+  transform: translateY(-1px);
+}
+
+.btn-ai svg {
+  width: 12px;
+  height: 12px;
+}
+
+/* ============ RESPONSIVE ============ */
+
+@media (max-width: 600px) {
+  .form-row {
+    grid-template-columns: 1fr; /* Stack inputs on mobile */
+  }
+
+  .form-actions {
+    flex-direction: column;
+  }
+
+  .form-actions button,
+  .form-actions a {
+    width: 100%;
+  }
 }

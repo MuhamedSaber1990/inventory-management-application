@@ -8,16 +8,17 @@ document.addEventListener("DOMContentLoaded", () => {
   // Filter & Search Elements
   const limitSelect = document.getElementById("limit");
   const limitForm = document.getElementById("limitForm");
-  const categorySelect = document.getElementById("category"); // For Add Product
+  const categorySelect = document.getElementById("category"); // Used in Add/Edit Product AND Filter
   const filterCategorySelect = document.querySelector(
     ".category-filter select",
-  ); // For Products Page
+  );
   const filterForm = document.getElementById("categoryForm");
   const searchInput = document.getElementById("searchInput");
 
   // AI Elements
-  const aiSearchBtn = document.getElementById("aiSearchBtn");
-  const aiDescBtn = document.getElementById("aiBtn");
+  const aiSearchBtn = document.getElementById("aiSearchBtn"); // Products Page
+  const aiDescBtn = document.getElementById("aiBtn"); // Add/Edit Page
+  const aiCatBtn = document.getElementById("aiCatBtn"); // Add/Edit Page
 
   // DOM Elements to update via AJAX
   const tableBody = document.querySelector(".products-table tbody");
@@ -119,7 +120,7 @@ document.addEventListener("DOMContentLoaded", () => {
     limitSelect.addEventListener("change", () => limitForm.submit());
   }
 
-  // Auto-Submit Category Filter
+  // Auto-Submit Category Filter (Products Page)
   if (filterCategorySelect && filterForm) {
     filterCategorySelect.addEventListener("change", () => {
       // Reset to page 1 when filtering
@@ -300,6 +301,7 @@ document.addEventListener("DOMContentLoaded", () => {
   if (aiDescBtn) {
     const nameInput = document.getElementById("name");
     const descInput = document.getElementById("description");
+    // Reuse categorySelect from global selector
 
     aiDescBtn.addEventListener("click", async () => {
       const productName = nameInput.value;
@@ -346,7 +348,62 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  // ============ 7. AI SMART SEARCH (NOW INSIDE SCOPE) ============
+  if (aiCatBtn) {
+    // Select elements specifically for this action
+    const nameInput = document.getElementById("name");
+    const catSelect = document.getElementById("category");
+
+    aiCatBtn.addEventListener("click", async () => {
+      const productName = nameInput.value;
+      console.log("Requesting category for:", productName);
+
+      if (!productName) {
+        alert("Please enter a Product Name first!");
+        nameInput.focus();
+        return;
+      }
+
+      const originalText = aiCatBtn.innerHTML;
+      aiCatBtn.disabled = true;
+      aiCatBtn.innerHTML = `Thinking...`;
+      aiCatBtn.style.cursor = "wait";
+
+      try {
+        const response = await fetch("/api/suggest-category", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ productName }),
+        });
+
+        const data = await response.json();
+        console.log("AI Response:", data);
+
+        if (data.success && data.categoryId) {
+          // Update Dropdown
+          catSelect.value = data.categoryId;
+
+          // Visual Feedback
+          catSelect.style.borderColor = "#4ade80";
+          catSelect.style.boxShadow = "0 0 0 4px rgba(74, 222, 128, 0.2)";
+          setTimeout(() => {
+            catSelect.style.borderColor = "";
+            catSelect.style.boxShadow = "";
+          }, 1500);
+        } else {
+          alert("Could not determine category. Please select manually.");
+        }
+      } catch (error) {
+        console.error("AI Category Error:", error);
+        alert("Failed to suggest category.");
+      } finally {
+        aiCatBtn.disabled = false;
+        aiCatBtn.innerHTML = originalText;
+        aiCatBtn.style.cursor = "pointer";
+      }
+    });
+  }
+
+  // ============ 8. AI SMART SEARCH ============
   if (aiSearchBtn && searchInput) {
     aiSearchBtn.addEventListener("click", async () => {
       const query = searchInput.value.trim();
@@ -358,14 +415,12 @@ document.addEventListener("DOMContentLoaded", () => {
         return;
       }
 
-      // 1. Loading State
       const originalText = aiSearchBtn.innerHTML;
       aiSearchBtn.disabled = true;
       aiSearchBtn.innerHTML = `Running...`;
       document.body.style.cursor = "wait";
 
       try {
-        // 2. Ask Backend
         const response = await fetch("/api/search-natural", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -375,11 +430,8 @@ document.addEventListener("DOMContentLoaded", () => {
         const data = await response.json();
 
         if (data.success) {
-          // 3. Build Query String
           const params = new URLSearchParams(data.filters);
           if (limitSelect) params.append("limit", limitSelect.value);
-
-          // 4. Redirect
           window.location.href = `/products?${params.toString()}`;
         } else {
           console.error("AI Error:", data.error);

@@ -15,6 +15,27 @@
           <p>Inventory Overview</p>
         </header>
 
+        <!-- NEW: AI INSIGHTS SECTION (No Inline Styles) -->
+        <div class="dash-card ai-card" id="aiInsightsCard">
+          <div class="dash-card-header">
+            <h3 class="ai-header-text">
+              ✨ AI Analyst Insights
+            </h3>
+          </div>
+          
+          <div id="aiLoading" class="ai-loading">
+            <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24" class="spinner">
+              <circle cx="12" cy="12" r="10" stroke-width="4" opacity="0.25"></circle>
+              <path d="M12 2a10 10 0 0 1 10 10" stroke-width="4" stroke-linecap="round"></path>
+            </svg>
+            <span>Analyzing your inventory data...</span>
+          </div>
+
+          <ul id="aiResult" class="ai-result-list" style="display: none;">
+            <!-- Content injected via JS -->
+          </ul>
+        </div>
+
         <!-- 1. KPI STATS GRID -->
         <div class="stats-grid">
           <div class="stat-card">
@@ -69,37 +90,26 @@
                   <h3>⚡ Quick Actions</h3>
                 </div>
                 <div class="actions-grid">
-                  <!-- 1. View All Products (Added) -->
                   <a href="/products" class="action-card">
                     <span class="action-icon">📦</span>
                     <span class="action-label">All Products</span>
                   </a>
-
-                  <!-- 2. Add Item -->
                   <a href="/products/add" class="action-card">
                     <span class="action-icon">+</span>
                     <span class="action-label">Add Item</span>
                   </a>
-
-                  <!-- 3. Categories -->
                   <a href="/categories" class="action-card">
                     <span class="action-icon">🏷️</span>
                     <span class="action-label">Categories</span>
                   </a>
-
-                  <!-- 4. Export CSV -->
                   <a href="/data/export/products/csv" class="action-card">
                     <span class="action-icon">📄</span>
                     <span class="action-label">Export CSV</span>
                   </a>
-
-                  <!-- 5. Import -->
                   <a href="/data/import" class="action-card">
                     <span class="action-icon">⬇</span>
                     <span class="action-label">Import</span>
                   </a>
-
-                  <!-- 6. Backup -->
                   <a href="/data/backup/database" class="action-card">
                     <span class="action-icon">💾</span>
                     <span class="action-label">Backup DB</span>
