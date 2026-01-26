@@ -98,25 +98,29 @@ export async function handleLogin(req, res) {
   }
 }
 
-// Handle Sign Up
 export async function handleSignUp(req, res) {
   const csrfToken = generateCsrfToken(req, res);
   const { name, email, password } = req.body;
-  const expiry = new Date(Date.now() + 86400000);
+  const expiry = new Date(Date.now() + 86400000); // 24h
   const token = generateRandomToken();
-  const resetLink = `http://${req.headers.host}/activate-account/${token}`;
+  const resetLink = `https://${req.get("host")}/activate-account/${token}`;
 
   try {
     await newUser(name, email, password, token, expiry);
-    await sendEmailVerfication(email, resetLink);
+
+    try {
+      await sendEmailVerfication(email, resetLink);
+    } catch (mailError) {
+      console.error("Mailer Error (User was still created):", mailError);
+    }
+
     res.render("signup-success.ejs", {
-      message: "Please check your email to activate your account.",
+      message: "Account created! Please check your email to activate.",
       old: { email },
       csrfToken,
     });
   } catch (error) {
-    console.error("Error in /signup:", error);
-    // Handle Duplicate Email Error
+    console.error("Database Error in /signup:", error);
     if (error.code === "23505") {
       return res.status(400).render("signup.ejs", {
         errorMessage: "This email is already registered.",
@@ -125,7 +129,7 @@ export async function handleSignUp(req, res) {
       });
     }
     return res.status(500).render("signup.ejs", {
-      errorMessage: "Could not create account.",
+      errorMessage: "Could not create account due to a database error.",
       old: { name, email },
       csrfToken,
     });
