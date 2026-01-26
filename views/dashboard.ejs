@@ -153,7 +153,7 @@
               </ul>
             </div>
 
-            <!-- Low Stock Alerts -->
+            <!-- Low Stock Alerts - Cleaner version -->
             <% if (lowStockProducts.length > 0) { %>
             <div class="dash-card">
               <div class="section-header">
@@ -164,17 +164,11 @@
                   <% lowStockProducts.forEach(product => { %>
                   <tr>
                     <td><%= product.name %></td>
-                    <td style="text-align: right">
-                      <span class="stock-badge"
-                        ><%= product.quantity %> left</span
-                      >
+                    <td class="text-right">
+                      <span class="stock-badge"><%= product.quantity %> left</span>
                     </td>
-                    <td style="text-align: right; width: 60px">
-                      <a
-                        href="/products/edit/<%= product.id %>"
-                        class="auth-link-small"
-                        >Refill</a
-                      >
+                    <td class="col-action">
+                      <a href="/products/edit/<%= product.id %>" class="auth-link-small">Refill</a>
                     </td>
                   </tr>
                   <% }) %>
@@ -182,18 +176,14 @@
               </table>
             </div>
             <% } %>
-          </div>
-        </div>
 
-        <!-- Footer -->
-        <footer class="auth-footer footer-actions">
-          <form action="/logout" method="POST" style="display: inline">
-            <input type="hidden" name="_csrf" value="<%= csrfToken %>" />
-            <button type="submit" class="auth-btn btn-ghost w-auto">
-              Logout
-            </button>
-          </form>
-        </footer>
+            <!-- Footer - Cleaner version -->
+            <footer class="auth-footer footer-actions">
+              <form action="/logout" method="POST" class="d-inline">
+                <input type="hidden" name="_csrf" value="<%= csrfToken %>" />
+                <button type="submit" class="auth-btn btn-ghost w-auto">Logout</button>
+              </form>
+            </footer>
       </div>
     </div>
 

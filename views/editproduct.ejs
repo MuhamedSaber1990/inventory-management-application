@@ -39,14 +39,20 @@
 
           <!-- Category -->
           <div class="auth-field">
-            <label for="category">Category</label>
+            <div class="label-row">
+              <label for="category" class="mb-0">Category</label>
+              <button type="button" id="aiCatBtn" class="btn-ai">
+                <span>✨</span> Suggest
+              </button>
+            </div>
+            
             <select id="category" name="category" class="filter-select w-full">
-              <option value="" disabled>-- Select Category --</option>
+              <option value="" disabled selected>-- Select Category --</option>
               <% if (typeof categories !== 'undefined' && categories.length > 0) { %>
                 <% categories.forEach(cat => { %>
                   <option 
                     value="<%= cat.id %>" 
-                    <%= product.category_id === cat.id ? 'selected' : '' %>
+                    <%= (typeof old !== 'undefined' && old.category == cat.id) ? 'selected' : '' %>
                   >
                     <%= cat.name %>
                   </option>

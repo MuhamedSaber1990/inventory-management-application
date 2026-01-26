@@ -737,9 +737,9 @@ select.filter-input option {
 
 /* Utilities */
 .products-table td.id-cell {
-  display: flex;
-  justify-content: center;
-  align-items: center;
+  text-align: center;
+  vertical-align: middle;
+  padding: 14px 16px;
 }
 
 .products-table .id-pill {
@@ -2465,5 +2465,113 @@ select.filter-input option {
 @keyframes spin {
   to {
     transform: rotate(360deg);
+  }
+}
+
+/* ============ ADDITIONAL UTILITY CLASSES ============ */
+
+/* Button Icon Spacing */
+.btn-icon {
+  margin-right: 6px;
+  vertical-align: middle;
+}
+
+/* AI Search Button */
+.btn-ai {
+  padding: 6px 12px;
+}
+
+/* Input Row (side-by-side inputs) */
+.input-row {
+  display: flex;
+  gap: 5px;
+}
+
+.input-row .filter-input {
+  flex: 1;
+  min-width: 0;
+}
+
+/* Small Input Modifier */
+.input-small {
+  width: 80px !important;
+  flex: 0 0 80px !important;
+}
+
+/* Text Warning Color */
+.text-warning {
+  color: #fbbf24;
+}
+
+/* Table Checkbox Styling */
+.table-checkbox {
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
+  accent-color: var(--accent);
+}
+
+/* Description Column */
+.products-table td.description {
+  white-space: normal;
+  max-width: 200px;
+  line-height: 1.4;
+}
+
+/* Mobile Card Actions - Full Width Buttons */
+.mobile-card-actions .table-btn {
+  flex: 1;
+}
+
+.mobile-card-actions .delete-form {
+  flex: 1;
+  display: flex;
+}
+
+.mobile-card-actions .delete-form .table-btn {
+  width: 100%;
+}
+
+/* ============ RESPONSIVE FIXES FOR FILTER PANEL ============ */
+
+@media (max-width: 720px) {
+  .input-row {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .input-small {
+    width: 100% !important;
+    flex: 1 1 100% !important;
+  }
+
+  .btn-ai {
+    width: 100%;
+    justify-content: center;
+  }
+
+  /* Mobile card header layout */
+  .mobile-card-header {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .mobile-card-header .id-pill {
+    order: 1;
+  }
+
+  .mobile-card-header .category-badge {
+    order: 2;
+    margin-left: auto;
+  }
+
+  .mobile-card-header .item-checkbox {
+    order: 0;
+  }
+}
+
+@media (max-width: 480px) {
+  .input-row {
+    gap: 6px;
   }
 }
