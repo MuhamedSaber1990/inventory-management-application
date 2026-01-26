@@ -17,6 +17,7 @@ import {
 const app = express();
 const port = process.env.PORT;
 
+app.set("trust proxy", 1);
 // Configure middleware for parsing requests, static files, and cookies
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
