@@ -1,47 +1,47 @@
 import dotenv from "dotenv";
-import nodemailer from "nodemailer";
+import sgMail from "@sendgrid/mail";
 
 dotenv.config();
 
-const transporter = nodemailer.createTransport({
-  host: process.env.SMTP_HOST,
-  port: 465,
-  secure: true,
-  auth: {
-    user: process.env.SMTP_USER,
-    pass: process.env.SMTP_PASS,
-  },
-  tls: {
-    rejectUnauthorized: false,
-  },
-});
-
-export async function sendResetPWEmail(toEmail, resetLink) {
-  const mailOptions = {
-    from: `Inventory App <${process.env.SMTP_USER}>`,
-    to: toEmail,
-    subject: "PasswordReset",
-    html: `<h1>Password Reset</h1>
-      <p>You requested a password reset. Click the link below to set a new password:</p>
-      <a href="${resetLink}">Reset Password</a>
-      <p>This link will expire in 15 mintues.</p>
-      <p>If you didn't request this, please ignore this email.</p>
-    `,
-  };
-  return transporter.sendMail(mailOptions);
-}
+sgMail.setApiKey(process.env.SENDGRID_API_KEY);
 
 export async function sendEmailVerfication(toEmail, ActivateLink) {
-  const mailOptions = {
-    from: `Inventory App <${process.env.SMTP_USER}>`,
+  const msg = {
     to: toEmail,
-    subject: "EmailVerification",
-    html: `<h1>Email Verification</h1>
-      <p>You Created New account. Click the link below to set a Activate it or you will not be able to use the service Fully:</p>
-      <a href="${ActivateLink}">Activate your Email</a>
-      <p>This link will expire in 24 h.</p>
-      <p>If you didn't request this, please ignore this email.</p>
+    from: "Inventory App <pro.mohamed.refaey@gmail.com>",
+    subject: "Email Verification",
+    html: `
+      <h1>Email Verification</h1>
+      <p>Click the link below to activate your account:</p>
+      <a href="${ActivateLink}" style="display:inline-block; padding:10px 20px; background-color:#6366f1; color:white; text-decoration:none; border-radius:5px;">Activate Account</a>
     `,
   };
-  return transporter.sendMail(mailOptions);
+
+  try {
+    await sgMail.send(msg);
+    console.log("SendGrid: Verification email sent");
+  } catch (error) {
+    console.error("SendGrid Error:", error);
+    if (error.response) {
+      console.error(error.response.body);
+    }
+    throw error;
+  }
+}
+
+export async function sendResetPWEmail(toEmail, resetLink) {
+  const msg = {
+    to: toEmail,
+    from: "Inventory App <pro.mohamed.refaey@gmail.com>",
+    subject: "Password Reset",
+    html: `<p>Click <a href="${resetLink}">here</a> to reset your password.</p>`,
+  };
+
+  try {
+    await sgMail.send(msg);
+    console.log("SendGrid: Reset email sent");
+  } catch (error) {
+    console.error("SendGrid Reset Error:", error);
+    throw error;
+  }
 }
