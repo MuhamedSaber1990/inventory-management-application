@@ -20,12 +20,12 @@ export async function newUser(
   email,
   password,
   verificationToken,
-  tokenExpiry
+  tokenExpiry,
 ) {
   const passwordHash = await hashPw(password);
   const insertUser = await db.query(
     "INSERT INTO users (name, email, password_hash,verification_token,verification_token_expiry) VALUES ($1,$2,$3,$4,$5) RETURNING *",
-    [name, email.toLowerCase(), passwordHash, verificationToken, tokenExpiry]
+    [name, email.toLowerCase(), passwordHash, verificationToken, tokenExpiry],
   );
   return insertUser.rows[0];
 }
@@ -43,7 +43,7 @@ export async function findUserByEmail(email) {
 export async function setResetToken(resetToken, expiry, email) {
   const result = await db.query(
     "UPDATE users SET reset_token = $1, reset_token_expiry = $2 WHERE email = $3 RETURNING *",
-    [resetToken, expiry, email]
+    [resetToken, expiry, email],
   );
   return result.rows[0];
 }
@@ -52,7 +52,7 @@ export async function resetPassword(password, email) {
   const passwordHash = await hashPw(password);
   const insertUser = await db.query(
     "UPDATE users SET password_hash = $1, reset_token = NULL, reset_token_expiry = NULL WHERE email =$2",
-    [passwordHash, email.toLowerCase()]
+    [passwordHash, email.toLowerCase()],
   );
   return insertUser.rows[0];
 }
@@ -60,7 +60,7 @@ export async function resetPassword(password, email) {
 export async function findUserByResetToken(token) {
   const result = await db.query(
     "SELECT * FROM users WHERE reset_token = $1 AND reset_token_expiry > NOW()",
-    [token]
+    [token],
   );
   return result.rows[0];
 }
@@ -68,7 +68,15 @@ export async function findUserByResetToken(token) {
 export async function verifyUserToken(token) {
   const result = await db.query(
     "UPDATE users SET email_verified = true, verification_token = NULL, verification_token_expiry = NULL WHERE verification_token = $1 AND verification_token_expiry > NOW() RETURNING *",
-    [token]
+    [token],
+  );
+  return result.rows[0];
+}
+
+export async function updateVerificationToken(email, token, expiry) {
+  const result = await db.query(
+    "UPDATE users SET verification_token = $1, verification_token_expiry = $2 WHERE email = $3 RETURNING *",
+    [token, expiry, email.toLowerCase()],
   );
   return result.rows[0];
 }

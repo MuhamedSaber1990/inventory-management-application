@@ -10,6 +10,7 @@ import {
   setResetToken,
   verifyUserToken,
   findUserByResetToken,
+  updateVerificationToken,
 } from "../models/userModel.js";
 import { sendResetPWEmail, sendEmailVerfication } from "../utils/mailer.js";
 import { generateRandomToken } from "../utils/passwordUtils.js";
@@ -101,15 +102,50 @@ export async function handleLogin(req, res) {
 export async function handleSignUp(req, res) {
   const csrfToken = generateCsrfToken(req, res);
   const { name, email, password } = req.body;
-  const expiry = new Date(Date.now() + 86400000); // 24h
+
+  // Use https for production (Render) and http for local
+  const protocol = process.env.NODE_ENV === "production" ? "https" : "http";
   const token = generateRandomToken();
-  const resetLink = `https://${req.get("host")}/activate-account/${token}`;
+  const expiry = new Date(Date.now() + 86400000); // 24h
+  const activationLink = `${protocol}://${req.get("host")}/activate-account/${token}`;
 
   try {
+    // 1. Check if a user with this email already exists
+    const user = await findUserByEmail(email);
+
+    if (user) {
+      // CASE A: User exists and is already verified
+      if (user.email_verified) {
+        return res.status(400).render("signup.ejs", {
+          errorMessage:
+            "This email is already registered and verified. Please log in.",
+          old: { name, email },
+          csrfToken,
+        });
+      }
+
+      // CASE B: User exists but is NOT verified -> Resend the link
+      await updateVerificationToken(email, token, expiry);
+
+      try {
+        await sendEmailVerfication(email, activationLink);
+      } catch (mailError) {
+        console.error("Resend Mailer Error:", mailError);
+      }
+
+      return res.render("signup-success.ejs", {
+        message:
+          "This account exists but wasn't activated. A new activation link has been sent to your email.",
+        old: { email },
+        csrfToken,
+      });
+    }
+
+    // CASE C: User does not exist -> Create new record
     await newUser(name, email, password, token, expiry);
 
     try {
-      await sendEmailVerfication(email, resetLink);
+      await sendEmailVerfication(email, activationLink);
     } catch (mailError) {
       console.error("Mailer Error (User was still created):", mailError);
     }
@@ -120,16 +156,9 @@ export async function handleSignUp(req, res) {
       csrfToken,
     });
   } catch (error) {
-    console.error("Database Error in /signup:", error);
-    if (error.code === "23505") {
-      return res.status(400).render("signup.ejs", {
-        errorMessage: "This email is already registered.",
-        old: { name, email },
-        csrfToken,
-      });
-    }
+    console.error("Signup logic error:", error);
     return res.status(500).render("signup.ejs", {
-      errorMessage: "Could not create account due to a database error.",
+      errorMessage: "An internal error occurred. Please try again later.",
       old: { name, email },
       csrfToken,
     });

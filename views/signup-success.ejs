@@ -4,14 +4,15 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Account Created - Inventory Management</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <link rel="stylesheet" href="/css/auth.css" />
     <link rel="stylesheet" href="/css/app.css" />
+    <link rel="stylesheet" href="/css/auth.css" />
   </head>
   <body class="auth-body">
     <div class="auth-wrapper">
-      <div class="auth-card">
-        <!-- Success Icon (SVG) -->
+      <!-- 'text-center' ensures headers and text align to middle -->
+      <div class="auth-card text-center">
+        
+        <!-- SVG uses 'auth-icon' which has margin: 0 auto in your CSS -->
         <svg
           xmlns="http://www.w3.org/2000/svg"
           class="auth-icon"
@@ -32,19 +33,21 @@
           <p>We have sent a verification link to your email.</p>
         </div>
 
-        <div class="text-center">
+        <!-- Text wrapper using existing text-center utility -->
+        <div class="text-center" style="margin-top: 15px;">
           <% if (typeof message !== 'undefined' && message) { %>
-          <p><%= message %></p>
+            <p><%= message %></p>
           <% } else { %>
-          <p>
-            Please click the link in the email to activate your account. You
-            won't be able to log in until you verify your email address.
-          </p>
+            <p>
+              Account created! Please check your email to activate.
+            </p>
           <% } %>
         </div>
 
-        <!-- Reusing auth-btn class on an anchor tag for consistency -->
-        <a href="/login" class="auth-btn"> Return to Log in </a>
+        <!-- NEW: Centering wrapper with the specialized pill button -->
+        <div class="auth-action-center">
+          <a href="/" class="btn-pill-success">Return to Log in</a>
+        </div>
 
         <div class="auth-footer">
           <p>Did not receive the email?</p>
