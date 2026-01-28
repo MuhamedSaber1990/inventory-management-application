@@ -26,23 +26,25 @@ router.post(
   doubleCsrfProtection,
   loginLimiter,
   loginValidation,
-  authController.handleLogin
+  authController.handleLogin,
 );
+router.get("/login", redirectIfAuth, authController.loginPage);
+
 router.get("/signup", redirectIfAuth, authController.showSignUp);
 router.post(
   "/signup",
   doubleCsrfProtection,
-  signUpLimiter,
+  // signUpLimiter,
   validateSignUpRules,
   validationSignUpInput,
-  authController.handleSignUp
+  authController.handleSignUp,
 );
 router.get("/forgot-password", redirectIfAuth, authController.showForgotPW);
 router.post(
   "/forgot-password",
   doubleCsrfProtection,
   passwordResetLimiter,
-  authController.handleForgotPW
+  authController.handleForgotPW,
 );
 router.get("/dashboard", requireAuth, authController.dashboard);
 router.post("/logout", doubleCsrfProtection, authController.logout);
@@ -53,12 +55,12 @@ router.post(
   doubleCsrfProtection,
   validateResetPassword,
   resetPasswordValidation,
-  authController.handleResetPassword
+  authController.handleResetPassword,
 );
 
 router.get(
   "/activate-account/:token",
-  authController.handleAccountVerfifcation
+  authController.handleAccountVerfifcation,
 );
 
 export default router;
