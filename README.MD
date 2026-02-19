@@ -10,6 +10,19 @@ A professional, full-stack inventory management suite featuring automated stock 
 
 ---
 
+## 🚀 Live Demo
+
+[https://inventory-management-application-ht9y.onrender.com/](https://inventory-management-application-ht9y.onrender.com/)
+
+> **⚠️ Note:** If the Twilio email verification service is paused, you can use the following test account to log in directly:
+>
+> | Field    | Value                          |
+> | -------- | ------------------------------ |
+> | Email    | `pro.mohamed.refaey@gmail.com` |
+> | Password | `ILoveProgramming12!`          |
+>
+> _This is a non-admin test account with limited permissions._
+
 ## 📸 Screenshots
 
 ### Dashboard Overview

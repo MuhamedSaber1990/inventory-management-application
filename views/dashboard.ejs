@@ -15,7 +15,7 @@
           <p>Inventory Overview</p>
         </header>
 
-        <!-- NEW: AI INSIGHTS SECTION (No Inline Styles) -->
+        <!-- AI INSIGHTS SECTION -->
         <div class="dash-card ai-card" id="aiInsightsCard">
           <div class="dash-card-header">
             <h3 class="ai-header-text">
@@ -32,7 +32,6 @@
           </div>
 
           <ul id="aiResult" class="ai-result-list" style="display: none;">
-            <!-- Content injected via JS -->
           </ul>
         </div>
 
@@ -51,9 +50,7 @@
             </span>
           </div>
 
-          <div
-            class="stat-card <%= stats.low_stock_count > 0 ? 'alert' : '' %>"
-          >
+          <div class="stat-card <%= stats.low_stock_count > 0 ? 'alert' : '' %>">
             <span class="stat-label">Low Stock Items</span>
             <span class="stat-value"><%= stats.low_stock_count %></span>
           </div>
@@ -117,7 +114,7 @@
                 </div>
               </div>
             </div>
-          </div>
+          </div><!-- END LEFT COLUMN -->
 
           <!-- RIGHT COLUMN (Feed & Alerts) -->
           <div class="dashboard-col">
@@ -126,40 +123,37 @@
               <div class="dash-card-header">
                 <h3>🕒 Recent Activity</h3>
               </div>
-
               <ul class="activity-list">
-                <% if (typeof logs !== 'undefined' && logs.length > 0) { %> <%
-                logs.forEach(log => { %>
-                <li class="feed-item">
-                  <div class="feed-icon">
-                    <%= log.action_type === 'DELETE' ? '🗑️' : (log.action_type
-                    === 'UPDATE' ? '✏️' : '✨') %>
-                  </div>
-                  <div class="feed-content">
-                    <span class="feed-user"
-                      ><%= log.user_name || 'System' %></span
-                    >
-                    <span class="feed-desc"><%= log.description %></span>
-                    <span class="feed-time">
-                      <%= new Date(log.created_at).toLocaleDateString() %> <%=
-                      new Date(log.created_at).toLocaleTimeString([], {hour:
-                      '2-digit', minute:'2-digit'}) %>
-                    </span>
-                  </div>
-                </li>
-                <% }) %> <% } else { %>
-                <li class="empty-state">No recent activity recorded.</li>
+                <% if (typeof logs !== 'undefined' && logs.length > 0) { %>
+                  <% logs.forEach(log => { %>
+                  <li class="feed-item">
+                    <div class="feed-icon">
+                      <%= log.action_type === 'DELETE' ? '🗑️' : (log.action_type === 'UPDATE' ? '✏️' : '✨') %>
+                    </div>
+                    <div class="feed-content">
+                      <span class="feed-user"><%= log.user_name || 'System' %></span>
+                      <span class="feed-desc"><%= log.description %></span>
+                      <span class="feed-time">
+                        <%= new Date(log.created_at).toLocaleDateString() %>
+                        <%= new Date(log.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) %>
+                      </span>
+                    </div>
+                  </li>
+                  <% }) %>
+                <% } else { %>
+                  <li class="empty-state">No recent activity recorded.</li>
                 <% } %>
               </ul>
             </div>
 
-            <!-- Low Stock Alerts - Cleaner version -->
+            <!-- Low Stock Alerts -->
             <% if (lowStockProducts.length > 0) { %>
             <div class="dash-card">
               <div class="section-header">
                 <h2>⚠️ Needs Attention</h2>
               </div>
-              <table class="mini-table">
+              <!-- Desktop mini-table -->
+              <table class="mini-table low-stock-desktop">
                 <tbody>
                   <% lowStockProducts.forEach(product => { %>
                   <tr>
@@ -174,28 +168,37 @@
                   <% }) %>
                 </tbody>
               </table>
+              <!-- Mobile low-stock cards -->
+              <div class="low-stock-mobile">
+                <% lowStockProducts.forEach(product => { %>
+                <div class="low-stock-card">
+                  <div class="low-stock-card-info">
+                    <span class="low-stock-name"><%= product.name %></span>
+                    <span class="stock-badge"><%= product.quantity %> left</span>
+                  </div>
+                  <a href="/products/edit/<%= product.id %>" class="table-btn">Refill</a>
+                </div>
+                <% }) %>
+              </div>
             </div>
             <% } %>
 
-            <!-- Footer - Cleaner version -->
+            <!-- Footer -->
             <footer class="auth-footer footer-actions">
               <form action="/logout" method="POST" class="d-inline">
                 <input type="hidden" name="_csrf" value="<%= csrfToken %>" />
                 <button type="submit" class="auth-btn btn-ghost w-auto">Logout</button>
               </form>
             </footer>
-      </div>
-    </div>
+          </div><!-- END RIGHT COLUMN -->
+        </div><!-- END dashboard-grid -->
+      </div><!-- END auth-card -->
+    </div><!-- END auth-wrapper -->
 
-    <!-- 1. Pass Data securely to JS -->
     <script id="chart-data" type="application/json">
       <%- JSON.stringify(typeof charts !== 'undefined' ? charts : {}) %>
     </script>
-
-    <!-- 2. Load Chart.js Library -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
-    <!-- 3. Load Custom Dashboard Logic -->
     <script src="/js/dashboard.js"></script>
   </body>
 </html>

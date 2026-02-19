@@ -8,7 +8,15 @@ const isProduction = process.env.NODE_ENV === "production";
 const db = new pg.Pool({
   connectionString: process.env.DATABASE_URL,
   ssl: isProduction ? { rejectUnauthorized: false } : false,
+
+  max: 10,
+  idleTimeoutMillis: 10000,
+  connectionTimeoutMillis: 5000,
 });
+
+db.query("SELECT 1")
+  .then(() => console.log("✅ Database connected successfully"))
+  .catch((err) => console.error("❌ Database connection failed:", err.message));
 
 // // Use a connection pool so callers can `await db.connect()` safely
 // const db = new pg.Pool({

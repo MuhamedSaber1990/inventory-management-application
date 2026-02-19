@@ -1,5 +1,6 @@
 import { Parser } from "json2csv";
 import Papa from "papaparse";
+import { URL } from "url";
 import {
   getAllProductsForExport,
   importProductsBulk,
@@ -31,7 +32,7 @@ export async function exportProductsCSV(req, res) {
     res.setHeader("Content-Type", "text/csv; charset=utf-8");
     res.setHeader(
       "Content-Disposition",
-      `attachment; filename=products_${timestamp}.csv`
+      `attachment; filename=products_${timestamp}.csv`,
     );
 
     res.send(csv);
@@ -106,7 +107,7 @@ export async function importProductsCSV(req, res) {
       // Validate required fields
       if (!row.Name || !row.Price || row.Quantity === undefined) {
         errors.push(
-          `Row ${rowNum}: Missing required fields (Name, Price, Quantity)`
+          `Row ${rowNum}: Missing required fields (Name, Price, Quantity)`,
         );
         continue;
       }
@@ -115,7 +116,7 @@ export async function importProductsCSV(req, res) {
       let categoryId = null;
       if (row.Category) {
         const category = categories.find(
-          (c) => c.name.toLowerCase() === row.Category.toLowerCase()
+          (c) => c.name.toLowerCase() === row.Category.toLowerCase(),
         );
         categoryId = category ? category.id : null;
       }
@@ -123,7 +124,7 @@ export async function importProductsCSV(req, res) {
       // If no category or invalid, use Uncategorized
       if (!categoryId) {
         const uncategorized = categories.find(
-          (c) => c.name === "Uncategorized"
+          (c) => c.name === "Uncategorized",
         );
         categoryId = uncategorized ? uncategorized.id : null;
       }
@@ -193,7 +194,7 @@ USB Cable,UC-003,5555555555555,9.99,100,USB-C to USB-A cable 2m,Accessories`;
   res.setHeader("Content-Type", "text/csv; charset=utf-8");
   res.setHeader(
     "Content-Disposition",
-    "attachment; filename=products_template.csv"
+    "attachment; filename=products_template.csv",
   );
   res.send(template);
 }
@@ -203,21 +204,49 @@ export async function backupDatabase(req, res) {
   try {
     const { exec } = await import("child_process");
     const { promisify } = await import("util");
+    const { URL } = await import("url"); // Import URL parser
     const execPromise = promisify(exec);
 
     const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
     const filename = `backup_${timestamp}.sql`;
 
-    // PostgreSQL dump command
-    const command = `pg_dump -U ${process.env.DB_USER} -h ${process.env.DB_HOST} -p ${process.env.DB_PORT} ${process.env.DB_NAME}`;
+    // 1. Get credentials from DATABASE_URL if available (Render/Neon)
+    let dbUser, dbHost, dbPort, dbName, dbPassword;
 
-    // Set password via environment variable
+    if (process.env.DATABASE_URL) {
+      const dbUrl = new URL(process.env.DATABASE_URL);
+      dbUser = dbUrl.username;
+      dbPassword = dbUrl.password;
+      dbHost = dbUrl.hostname;
+      dbPort = dbUrl.port;
+      dbName = dbUrl.pathname.substring(1); // Remove leading slash
+    } else {
+      // Fallback to individual env vars (Localhost)
+      dbUser = process.env.DB_USER;
+      dbHost = process.env.DB_HOST;
+      dbPort = process.env.DB_PORT;
+      dbName = process.env.DB_NAME;
+      dbPassword = process.env.DB_PASSWORD;
+    }
+
+    // 2. Handle pg_dump command path (Windows fix)
+    const pgDump = process.env.PG_DUMP_PATH
+      ? `"${process.env.PG_DUMP_PATH}"`
+      : "pg_dump";
+
+    // 3. Construct Command
+    const command = `${pgDump} -U ${dbUser} -h ${dbHost} -p ${dbPort} ${dbName}`;
+
+    // 4. Execute with Password in Environment
     const { stdout, stderr } = await execPromise(command, {
-      env: { ...process.env, PGPASSWORD: process.env.DB_PASSWORD },
+      env: {
+        ...process.env,
+        PGPASSWORD: dbPassword, // Pass the password securely here
+      },
     });
 
     if (stderr && !stderr.includes("WARNING")) {
-      throw new Error(stderr);
+      console.warn("Backup Warning:", stderr);
     }
 
     // Send backup as download
