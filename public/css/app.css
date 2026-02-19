@@ -2575,3 +2575,387 @@ select.filter-input option {
     gap: 6px;
   }
 }
+
+/* ============ DASHBOARD MOBILE RESPONSIVENESS ============ */
+
+/* Utility classes used in dashboard */
+.text-right {
+  text-align: right;
+}
+
+.col-action {
+  width: 60px;
+  text-align: right;
+}
+
+/* Low-stock mobile cards — hidden on desktop */
+.low-stock-mobile {
+  display: none;
+}
+
+/* ---- Tablet (≤ 900px) ---- */
+@media (max-width: 900px) {
+  /* Stack the two-column dashboard into one column */
+  .dashboard-grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+    margin-top: 20px;
+  }
+
+  .split-row {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  /* Slightly reduce chart height */
+  .chart-wrapper {
+    height: 260px;
+  }
+
+  .chart-wrapper-small {
+    height: 200px;
+  }
+
+  /* Let quick-action grid breathe as a 3-col */
+  .actions-grid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+  }
+
+  .action-card {
+    padding: 14px 10px;
+  }
+
+  /* AI card text wrap */
+  .ai-result-list {
+    font-size: 0.9rem;
+    padding-left: 18px;
+    word-break: break-word;
+  }
+
+  .ai-loading span {
+    word-break: break-word;
+  }
+
+  /* Stat value — prevent overflow on long currency strings */
+  .stat-value {
+    word-break: break-word;
+    overflow-wrap: break-word;
+  }
+
+  /* Feed descriptions wrap */
+  .feed-desc {
+    word-break: break-word;
+  }
+}
+
+/* ---- Phone landscape / small tablets (≤ 720px) ---- */
+@media (max-width: 720px) {
+  .dashboard-grid {
+    gap: 14px;
+    margin-top: 16px;
+  }
+
+  /* Cards get tighter padding */
+  .dash-card {
+    padding: 16px;
+    border-radius: 12px;
+  }
+
+  .dash-card-header h3 {
+    font-size: 0.9rem;
+  }
+
+  /* Charts shrink further */
+  .chart-wrapper {
+    height: 220px;
+  }
+
+  .chart-wrapper-small {
+    height: 180px;
+  }
+
+  /* Stats grid already goes 1-col; shrink values */
+  .stat-value {
+    font-size: 1.6rem;
+  }
+
+  .stat-label {
+    font-size: 0.8rem;
+  }
+
+  .stat-card {
+    padding: 16px;
+    border-radius: 12px;
+  }
+
+  /* Quick actions stay 3-col but smaller */
+  .actions-grid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+  }
+
+  .action-card {
+    padding: 12px 6px;
+    border-radius: 10px;
+  }
+
+  .action-icon {
+    font-size: 1.2rem;
+  }
+
+  .action-label {
+    font-size: 0.75rem;
+  }
+
+  /* Feed compacts */
+  .feed-item {
+    padding: 10px 0;
+    gap: 10px;
+  }
+
+  .feed-icon {
+    width: 28px;
+    height: 28px;
+    font-size: 0.9rem;
+  }
+
+  .feed-user {
+    font-size: 0.8rem;
+  }
+
+  .feed-desc {
+    font-size: 0.78rem;
+  }
+
+  .feed-time {
+    font-size: 0.68rem;
+  }
+
+  /* Low-stock: hide table, show cards */
+  .low-stock-desktop {
+    display: none;
+  }
+
+  .low-stock-mobile {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .low-stock-card {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 12px;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(248, 113, 113, 0.15);
+    border-radius: 10px;
+  }
+
+  .low-stock-card-info {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    min-width: 0; /* allow text to shrink / ellipsis */
+  }
+
+  .low-stock-name {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--text-main);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .low-stock-card .table-btn {
+    flex-shrink: 0;
+    font-size: 0.8rem;
+    padding: 6px 14px;
+  }
+
+  /* Section header smaller */
+  .section-header h2 {
+    font-size: 1rem;
+  }
+
+  /* AI card */
+  .ai-card {
+    margin-bottom: 16px;
+  }
+
+  .ai-header-text {
+    font-size: 0.9rem;
+  }
+
+  .ai-loading {
+    font-size: 0.85rem;
+  }
+
+  .ai-result-list {
+    font-size: 0.85rem;
+    padding-left: 16px;
+    line-height: 1.5;
+  }
+
+  /* Footer logout button full-width on mobile */
+  .footer-actions {
+    margin-top: 10px;
+  }
+
+  .footer-actions .auth-btn {
+    width: 100%;
+  }
+
+  .footer-actions form {
+    width: 100%;
+  }
+}
+
+/* ---- Phone portrait (≤ 480px) ---- */
+@media (max-width: 480px) {
+  .dashboard-grid {
+    gap: 12px;
+    margin-top: 12px;
+  }
+
+  .stats-grid {
+    gap: 12px;
+    margin-top: 16px;
+    margin-bottom: 16px;
+  }
+
+  .stat-card {
+    padding: 14px;
+    gap: 6px;
+  }
+
+  .stat-value {
+    font-size: 1.4rem;
+  }
+
+  .dash-card {
+    padding: 14px;
+  }
+
+  /* Quick actions go 2-col on very small screens */
+  .actions-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+  }
+
+  .action-card {
+    padding: 12px 8px;
+    gap: 6px;
+  }
+
+  .action-icon {
+    font-size: 1.1rem;
+  }
+
+  .action-label {
+    font-size: 0.72rem;
+  }
+
+  /* Charts at minimum comfortable height */
+  .chart-wrapper {
+    height: 200px;
+  }
+
+  .chart-wrapper-small {
+    height: 160px;
+  }
+
+  /* Feed even more compact */
+  .feed-item {
+    padding: 8px 0;
+    gap: 8px;
+  }
+
+  .feed-icon {
+    width: 26px;
+    height: 26px;
+    font-size: 0.85rem;
+  }
+
+  /* Low stock cards */
+  .low-stock-card {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+    padding: 10px;
+  }
+
+  .low-stock-card-info {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .low-stock-card .table-btn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  /* Header */
+  .auth-header h1 {
+    font-size: 1.25rem;
+  }
+}
+
+/* ---- Very small (≤ 360px) ---- */
+@media (max-width: 360px) {
+  .auth-header h1 {
+    font-size: 1.1rem;
+  }
+
+  .stat-value {
+    font-size: 1.2rem;
+  }
+
+  .stat-label {
+    font-size: 0.75rem;
+  }
+
+  .dash-card {
+    padding: 12px;
+    border-radius: 10px;
+  }
+
+  .dash-card-header h3 {
+    font-size: 0.82rem;
+  }
+
+  .chart-wrapper {
+    height: 180px;
+  }
+
+  .chart-wrapper-small {
+    height: 140px;
+  }
+
+  .actions-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 6px;
+  }
+
+  .action-card {
+    padding: 10px 6px;
+    border-radius: 8px;
+  }
+
+  .action-icon {
+    font-size: 1rem;
+  }
+
+  .action-label {
+    font-size: 0.68rem;
+  }
+
+  .ai-result-list {
+    font-size: 0.8rem;
+    padding-left: 14px;
+  }
+}
