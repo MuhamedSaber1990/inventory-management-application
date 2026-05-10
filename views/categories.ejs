@@ -25,16 +25,9 @@
           <div class="mobile-category-view">
             <% categories.forEach((category, index) => { %>
             <div class="mobile-category-card">
-              <div
-                style="
-                  display: flex;
-                  align-items: center;
-                  gap: 10px;
-                  margin-bottom: 8px;
-                "
-              >
+              <div class="u-flex-row-center">
                 <span class="id-pill"><%= index + 1 %></span>
-                <h3 class="mobile-category-name" style="margin: 0; flex: 1">
+                <h3 class="mobile-category-name u-m0-flex1">
                   <%= category.name %>
                 </h3>
               </div>
@@ -52,10 +45,7 @@
                 </div>
                 <div class="mobile-category-meta-item">
                   <span class="mobile-category-meta-label">Created</span>
-                  <span
-                    class="mobile-category-meta-value"
-                    style="font-size: 0.8rem"
-                  >
+                  <span class="mobile-category-meta-value u-fs-08">
                     <%= new Date(category.created_at).toLocaleDateString() %>
                   </span>
                 </div>
@@ -65,37 +55,26 @@
                 <% if (category.name !== 'Uncategorized') { %>
                 <a
                   href="/categories/edit/<%= category.id %>"
-                  class="table-btn"
-                  style="flex: 1"
+                  class="table-btn u-flex1"
                 >
                   Edit
                 </a>
                 <form
                   action="/categories/delete/<%= category.id %>"
                   method="POST"
-                  class="delete-form"
+                  class="delete-form u-flex1"
                   data-name="<%= category.name %>"
-                  style="flex: 1"
                 >
                   <input type="hidden" name="_csrf" value="<%= csrfToken %>" />
                   <button
                     type="submit"
-                    class="table-btn table-btn-danger"
-                    style="width: 100%"
+                    class="table-btn table-btn-danger u-w-100"
                   >
                     Delete
                   </button>
                 </form>
                 <% } else { %>
-                <span
-                  class="table-btn"
-                  style="
-                    opacity: 0.3;
-                    cursor: not-allowed;
-                    flex: 1;
-                    text-align: center;
-                  "
-                >
+                <span class="table-btn u-disabled-flex">
                   Protected
                 </span>
                 <% } %>
@@ -126,7 +105,7 @@
                   </td>
                   <td><strong><%= category.name %></strong></td>
                   <td><%= category.description || 'No description' %></td>
-                  <td style="text-align: center">
+                  <td class="u-text-center">
                     <span class="stock-badge"
                       ><%= category.product_count %></span
                     >
@@ -143,10 +122,7 @@
                       Edit
                     </a>
                     <% } else { %>
-                    <span
-                      class="table-btn"
-                      style="opacity: 0.3; cursor: not-allowed"
-                    >
+                    <span class="table-btn u-disabled">
                       Edit
                     </span>
                     <% } %>
@@ -169,10 +145,7 @@
                       </button>
                     </form>
                     <% } else { %>
-                    <span
-                      class="table-btn"
-                      style="opacity: 0.3; cursor: not-allowed"
-                    >
+                    <span class="table-btn u-disabled">
                       Delete
                     </span>
                     <% } %>

@@ -210,7 +210,7 @@ document.addEventListener("DOMContentLoaded", () => {
             aiResult.appendChild(node);
           });
         } else {
-          aiLoading.innerHTML = `<span style="color:#f87171">Unable to generate insights at this time.</span>`;
+          aiLoading.innerHTML = `<span class="u-error-text">Unable to generate insights at this time.</span>`;
         }
       })
       .catch((err) => {
@@ -225,12 +225,9 @@ document.addEventListener("DOMContentLoaded", () => {
     const parent = canvas.parentElement;
     canvas.style.display = "none";
     const messageDiv = document.createElement("div");
-    messageDiv.style.cssText = `
-      display: flex; flex-direction: column; align-items: center; justify-content: center;
-      height: 200px; color: #9ca3af; font-size: 0.9rem; text-align: center; padding: 20px;
-    `;
+    messageDiv.className = "u-empty-state";
     messageDiv.innerHTML = `
-      <div style="font-size: 2rem; opacity: 0.3; margin-bottom: 12px;">📊</div>
+      <div class="u-empty-state-icon">📊</div>
       <div>${message}</div>
     `;
     parent.appendChild(messageDiv);

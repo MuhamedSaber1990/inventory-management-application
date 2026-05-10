@@ -2959,3 +2959,19 @@ select.filter-input option {
     padding-left: 14px;
   }
 }
+
+/* === Utility classes (replaces inline style="" attributes for CSP compliance) === */
+.u-mw-600       { max-width: 600px; }
+.u-m0-flex1     { margin: 0; flex: 1; }
+.u-fs-08        { font-size: 0.8rem; }
+.u-flex1        { flex: 1; }
+.u-w-100        { width: 100%; }
+.u-text-center  { text-align: center; }
+.u-disabled     { opacity: 0.3; cursor: not-allowed; }
+.u-hidden       { display: none; }
+.u-mt-15        { margin-top: 15px; }
+.u-flex-row-center { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+.u-disabled-flex   { opacity: 0.3; cursor: not-allowed; flex: 1; text-align: center; }
+.u-error-text     { color: #f87171; }
+.u-empty-state-icon { font-size: 2rem; opacity: 0.3; margin-bottom: 12px; }
+.u-empty-state    { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 200px; color: #9ca3af; font-size: 0.9rem; text-align: center; padding: 20px; }

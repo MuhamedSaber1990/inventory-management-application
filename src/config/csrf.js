@@ -9,7 +9,7 @@ const { doubleCsrfProtection, generateCsrfToken } = doubleCsrf({
   getSessionIdentifier: (req) => "fixed_inventory_session",
   cookieName: "x-csrf-token",
   cookieOptions: {
-    httpOnly: false,
+    httpOnly: true,
     sameSite: "lax",
     secure: process.env.NODE_ENV === "production",
     path: "/",
